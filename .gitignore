@@ -1,0 +1,24 @@
+## editors
+/.idea
+/.vscode
+
+## system files
+.DS_Store
+
+## code coverage folders
+coverage/
+.nyc_output
+
+## npm
+node_modules
+npm-debug.log
+yarn-error.log
+
+## lerna
+lerna-debug.log
+
+## temp folders
+/.tmp/
+
+## SECRETS!!!
+packages/arc-platform-api/config.json

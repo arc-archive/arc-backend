@@ -1,0 +1,17 @@
+{
+  "packages": [
+    "packages/*"
+  ],
+  "ignoreChanges": [
+    "packages/*/test/**",
+    "**/*.md",
+    "**/*.mdx"
+  ],
+  "version": "independent",
+  "npmClient": "npm",
+  "command": {
+    "publish": {
+      "conventionalCommits": true
+    }
+  }
+}

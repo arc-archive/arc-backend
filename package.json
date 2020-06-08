@@ -1,0 +1,58 @@
+{
+  "name": "@advanced-rest-clinet/arc-backend",
+  "private": true,
+  "description": "Back-end for ARC app and components processing. It contains API and CI apps for ARC and the API components.",
+  "scripts": {
+    "bootstrap": "lerna bootstrap",
+    "build": "lerna run build",
+    "build:types": "tsc -p tsconfig.build.types.json",
+    "format": "npm run format:eslint && npm run format:prettier",
+    "format:eslint": "eslint --ext .js,.html . --fix",
+    "lint": "run-p lint:*",
+    "lint:eslint": "eslint --ext .js,.html .",
+    "lint:types": "tsc",
+    "lint:versions": "node ./scripts/lint-versions.js",
+    "postinstall": "npm run build && patch-package",
+    "publish": "lerna publish --message 'chore: release new versions'",
+    "test:node": "lerna run test:node --stream"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/advanced-rest-client/arc-backend.git"
+  },
+  "author": "Pawel Psztyc",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/advanced-rest-client/arc-backend/issues"
+  },
+  "homepage": "https://github.com/advanced-rest-client/arc-backend#readme",
+  "dependencies": {
+    "patch-package": "^6.2.2"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "8.3.5",
+    "@commitlint/config-conventional": "8.3.4",
+    "@commitlint/config-lerna-scopes": "8.3.4",
+    "babel-eslint": "^10.1.0",
+    "chai": "^4.2.0",
+    "eslint": "^7.2.0",
+    "eslint-config-esnext": "^4.1.0",
+    "eslint-config-google": "^0.14.0",
+    "eslint-config-node": "^4.1.0",
+    "eslint-plugin-babel": "^5.3.0",
+    "eslint-plugin-import": "^2.20.2",
+    "eslint-plugin-no-only-tests": "^2.4.0",
+    "husky": "4.2.5",
+    "lerna": "^3.22.0",
+    "lint-staged": "^10.2.9",
+    "mocha": "^7.2.0",
+    "nyc": "^15.1.0",
+    "sinon": "^9.0.2",
+    "typescript": "^3.9.5"
+  },
+  "lint-staged": {
+    "*.js": [
+      "eslint --fix"
+    ]
+  }
+}

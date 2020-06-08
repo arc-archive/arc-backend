@@ -1,0 +1,39 @@
+{
+  "name": "@advanced-rest-client/backend-models",
+  "description": "Models definition for Advanced REST Client backed and API Components",
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "main": "index.js",
+  "module": "index.js",
+  "keywords": [
+    "arc-backend",
+    "models",
+    "datastore"
+  ],
+  "authors": [
+    "Pawel Psztyc"
+  ],
+  "contributors": [
+    "Your name can be here!"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/advanced-rest-client/arc-backend.git",
+    "directory": "packages/backend-models"
+  },
+  "bugs": {
+    "url": "https://github.com/advanced-rest-client/arc-backend/issues",
+    "email": "arc@mulesoft.com"
+  },
+  "dependencies": {
+    "@advanced-rest-client/uuid-generator": "^3.1.0",
+    "@advanced-rest-client/backend-config": "^0.1.0",
+    "@google-cloud/datastore": "^5.1.0",
+    "@types/semver": "^7.2.0",
+    "@types/slug": "^0.9.1",
+    "decamelize": "^4.0.0",
+    "semver": "^7.3.2",
+    "slug": "^2.1.1"
+  },
+  "scripts": {}
+}

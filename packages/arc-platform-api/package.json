@@ -1,0 +1,60 @@
+{
+  "name": "@advanced-rest-client/arc-platform-api",
+  "description": "An application running ARC platform APIs.",
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "main": "index.js",
+  "module": "index.js",
+  "keywords": [
+    "arc-backend",
+    "API"
+  ],
+  "authors": [
+    "Pawel Psztyc"
+  ],
+  "contributors": [
+    "Your name can be here!"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/advanced-rest-client/arc-backend.git",
+    "directory": "packages/arc-platform-api"
+  },
+  "bugs": {
+    "url": "https://github.com/advanced-rest-client/arc-backend/issues",
+    "email": "arc@mulesoft.com"
+  },
+  "dependencies": {
+    "@advanced-rest-client/api-tokens": "^0.1.0",
+    "@advanced-rest-client/arc-platform-logger": "^0.1.0",
+    "@advanced-rest-client/backend-config": "^0.1.0",
+    "@advanced-rest-client/backend-models": "^0.1.0",
+    "@google-cloud/debug-agent": "^5.0.0",
+    "@google-cloud/trace-agent": "^5.0.0",
+    "@types/body-parser": "^1.19.0",
+    "@types/cors": "^2.8.6",
+    "@types/express": "^4.17.6",
+    "@types/passport": "^1.0.3",
+    "@types/passport-google-oauth20": "^2.0.3",
+    "@types/validator": "^13.0.0",
+    "body-parser": "^1.19.0",
+    "connect-memcached": "^1.0.0",
+    "cors": "^2.8.5",
+    "esm": "^3.2.25",
+    "express": "^4.17.1",
+    "express-session": "^1.17.1",
+    "passport": "^0.4.1",
+    "passport-google-oauth20": "^2.0.0",
+    "validator": "^13.0.0"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "start:api": "node --inspect=9227 api.js --PORT=8080",
+    "test": "mocha test/*.spec.js --require esm --timeout 90000",
+    "test:watch": "mocha test/*.spec.js --require esm --timeout 90000 --watch",
+    "gke:build": "docker build -t gcr.io/advancedrestclient-1155/arc-platform-api:$npm_package_version .",
+    "gke:deploy": "docker -- push gcr.io/advancedrestclient-1155/arc-platform-api:$npm_package_version",
+    "gke:deploy:config": "kubectl apply -f gke/deployment-api.yaml",
+    "gke:deploy:certificate": "kubectl apply -f gke/deployment-api.yaml"
+  }
+}
