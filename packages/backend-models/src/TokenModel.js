@@ -1,5 +1,5 @@
 import { BaseModel } from './BaseModel.js';
-import { v4 as uuidv4 } from '@advanced-rest-client/uuid-generator';
+import uuidv4 from '@advanced-rest-client/uuid-generator/src/v4.js';
 
 /** @typedef {import('./TokenModel').TokenEntity} TokenEntity */
 /** @typedef {import('@google-cloud/datastore/build/src/entity').entity.Key} Key */

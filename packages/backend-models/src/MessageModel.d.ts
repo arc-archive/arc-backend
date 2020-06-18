@@ -96,10 +96,9 @@ export class MessageModel extends BaseModel {
 
   /**
    * Makes the query to the backend to retreive list or messages.
-   * @param {Object} config Query options.
-   * @return {Promise}
+   * @param config Query options.
    */
-  list(config: MessageFilter): Promise<MessageQueryResult>;
+  list(config?: MessageFilter): Promise<MessageQueryResult>;
 
   /**
    * Insets new message to the datastore.

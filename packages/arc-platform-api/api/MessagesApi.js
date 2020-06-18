@@ -3,8 +3,8 @@ import bodyParser from 'body-parser';
 import { BaseApi } from './BaseApi.js';
 import { MessageModel } from '@advanced-rest-client/backend-models';
 
+/** @typedef {import('./BaseApi').SessionRequest} Request */
 /** @typedef {import('express').Response} Response */
-/** @typedef {import('express').Request} Request */
 /** @typedef {import('@advanced-rest-client/backend-models').MessageFilter} MessageFilter */
 
 const router = express.Router();

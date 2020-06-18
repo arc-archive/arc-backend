@@ -1,5 +1,10 @@
 import { TokenModel } from '@advanced-rest-client/backend-models';
-import { Express, Response, Request, Router } from 'express';
+import { Response, Request, Router } from 'express';
+import { UserEntity } from '@advanced-rest-client/backend-models';
+
+export declare interface SessionRequest extends Request {
+  user?: UserEntity;
+}
 
 
 export declare interface QueryResult<T> {
@@ -10,7 +15,7 @@ export declare interface QueryResult<T> {
   /**
    * The page token used in pagination
    */
-  pageToken: string;
+  pageToken?: string;
 }
 
 /**

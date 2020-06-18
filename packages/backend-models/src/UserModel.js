@@ -39,9 +39,13 @@ export class UserModel extends BaseModel {
    */
   async get(id) {
     const key = this.createUserKey(id);
-    const [entity] = await this.store.get(key);
-    if (entity) {
-      return this.fromDatastore(entity);
+    try {
+      const [entity] = await this.store.get(key);
+      if (entity) {
+        return this.fromDatastore(entity);
+      }
+    } catch (e) {
+      //
     }
     return null;
   }
@@ -72,7 +76,7 @@ export class UserModel extends BaseModel {
         break;
       }
       for (let j = 0, jLen = domains.length; j < jLen; j++) {
-        if (info.value.indexOf(domains[i]) !== -1) {
+        if (info.value.indexOf(domains[j]) !== -1) {
           orgUser = true;
           break;
         }
@@ -102,7 +106,7 @@ export class UserModel extends BaseModel {
         return email;
       }
       for (let j = 0, jLen = domains.length; j < jLen; j++) {
-        if (info.value.indexOf(domains[i]) !== -1) {
+        if (info.value.indexOf(domains[j]) !== -1) {
           return email;
         }
       }

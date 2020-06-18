@@ -1,5 +1,5 @@
 import semver from 'semver';
-import { v4 as uuidv4 } from '@advanced-rest-client/uuid-generator';
+import uuidv4 from '@advanced-rest-client/uuid-generator/src/v4.js';
 import { BaseModel } from './BaseModel.js';
 
 /** @typedef {import('@google-cloud/datastore/build/src/entity').entity.Key} Key */

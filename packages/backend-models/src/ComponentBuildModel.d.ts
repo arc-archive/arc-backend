@@ -1,4 +1,4 @@
-import { BaseModel, Entity, QueryResult } from './BaseModel.js';
+import { BaseModel, Entity, QueryResult, QueryOptions } from './BaseModel.js';
 
 export declare interface EditableComponentBuildEntity {
   /**
@@ -45,6 +45,10 @@ export declare interface EditableComponentBuildEntity {
    * An error message.
    */
   message?: string;
+  /**
+   * The staus of the build. Defaults to `queued`.
+   */
+  status?: string;
 }
 
 export declare interface ComponentBuildEntity extends EditableComponentBuildEntity, Entity {
@@ -58,6 +62,7 @@ export declare interface ComponentBuildEntity extends EditableComponentBuildEnti
   status: string;
 }
 
+export declare interface ComponentBuildQueryOptions extends QueryOptions {}
 export declare interface ComponentBuildQueryResult extends QueryResult<ComponentBuildEntity> {}
 
 /**
@@ -68,11 +73,10 @@ export class ComponentBuildModel extends BaseModel {
 
   /**
    * Lists test runs
-   * @param limit A number of results to return.
-   * @param nextPageToken A page token value.
+   * @param opts Query options
    * @returns Query results.
    */
-  list(limit?: number, nextPageToken?: string): Promise<ComponentBuildQueryResult>;
+  list(opts?: ComponentBuildQueryOptions): Promise<ComponentBuildQueryResult>;
 
   /**
    * Creates a new build.
@@ -111,7 +115,7 @@ export class ComponentBuildModel extends BaseModel {
    * @param {string} id The ID of the build
    * @param {string=} message Additional message to set.
    */
-  finishBuild(id: string, message: string): Promise<void>;
+  finishBuild(id: string, message?: string): Promise<void>;
 
   /**
    * Updates build properties in the data store.

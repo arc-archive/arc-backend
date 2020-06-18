@@ -4,7 +4,7 @@ import logging from '@advanced-rest-client/arc-platform-logger';
 // import background from '../lib/background.js';
 import { BaseApi } from './BaseApi.js';
 
-/** @typedef {import('express').Request} Request */
+/** @typedef {import('./BaseApi').SessionRequest} Request */
 /** @typedef {import('express').Response} Response */
 
 const router = express.Router();
@@ -47,7 +47,10 @@ class BuildsApiRoute extends BaseApi {
       typedToken = String(nextPageToken);
     }
     try {
-      const result = await this.model.list(typedLimit, typedToken);
+      const result = await this.model.list({
+        limit: typedLimit,
+        pageToken: typedToken,
+      });
       this.sendQueryResult(result, res);
     } catch (cause) {
       logging.error(cause);

@@ -1,0 +1,31 @@
+language: node_js
+
+# Cache Gcloud SDK between commands
+cache:
+  directories:
+    - "$HOME/google-cloud-sdk/"
+
+before_script:
+  - if [ ! -d "$HOME/google-cloud-sdk/bin" ]; then rm -rf $HOME/google-cloud-sdk; export CLOUDSDK_CORE_DISABLE_PROMPTS=1; curl https://sdk.cloud.google.com | bash; fi
+  - source /home/travis/google-cloud-sdk/path.bash.inc
+  - gcloud --quiet version
+  - gcloud --quiet components update
+  - gcloud --quiet components beta update
+  - gcloud --quiet components update kubectl
+  - gcloud --quiet components install cloud-datastore-emulator
+  - gcloud --quiet beta emulators datastore start --no-store-on-disk --host-port=8099 &>/dev/null &
+  - $(gcloud beta emulators datastore env-init)
+after_script:
+  - $(gcloud beta emulators datastore env-unset)
+
+deploy:
+  - provider: script
+    script: ./deploy-staging.sh
+    skip_cleanup: true
+    on:
+      branch: development
+  - provider: script
+    script: ./deploy-production.sh
+    skip_cleanup: true
+    on:
+      branch: master

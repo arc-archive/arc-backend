@@ -7,7 +7,7 @@ import { ComponentBuildModel, CoverageModel } from '@advanced-rest-client/backen
 import logging from '@advanced-rest-client/arc-platform-logger';
 import { BaseApi } from './BaseApi.js';
 
-/** @typedef {import('express').Request} Request */
+/** @typedef {import('./BaseApi').SessionRequest} Request */
 /** @typedef {import('express').Response} Response */
 
 const router = express.Router();

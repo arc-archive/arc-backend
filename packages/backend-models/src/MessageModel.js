@@ -80,10 +80,10 @@ export class MessageModel extends BaseModel {
 
   /**
    * Makes the query to the backend to retreive list or messages.
-   * @param {MessageFilter} config Query options.
+   * @param {MessageFilter=} config Query options.
    * @return {Promise<MessageQueryResult>}
    */
-  async list(config) {
+  async list(config={}) {
     const query = this._createQuery(config);
     const [entitiesRaw, queryInfo] = await this.store.runQuery(query);
     const entities = entitiesRaw.map(this.fromDatastore.bind(this));
@@ -109,7 +109,7 @@ export class MessageModel extends BaseModel {
       },
       {
         name: 'title',
-        value: message.abstract,
+        value: message.title,
         excludeFromIndexes: true,
       },
       {

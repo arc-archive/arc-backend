@@ -6,7 +6,13 @@ export interface Entity {
 }
 
 export declare interface QueryResult<T> {
+  /**
+   * Datastore query start token.
+   */
   pageToken?: string;
+  /**
+   * The list of results to communicate back.
+   */
   entities: T[];
 }
 

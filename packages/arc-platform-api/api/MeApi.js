@@ -1,13 +1,13 @@
 import express from 'express';
 import bodyParser from 'body-parser';
-import { UserModel, TokenModel } from '@advanced-rest-client/backend-models';
+import { UserModel } from '@advanced-rest-client/backend-models';
 import { areScopesValid, generateToken, verifyToken } from '@advanced-rest-client/api-tokens';
 import validator from 'validator';
 import { BaseApi } from './BaseApi.js';
 import { ClientError } from './Errors.js';
 
+/** @typedef {import('./BaseApi').SessionRequest} Request */
 /** @typedef {import('express').Response} Response */
-/** @typedef {import('express').Request} Request */
 /** @typedef {import('@advanced-rest-client/backend-models').UserEntity} UserEntity */
 
 const router = express.Router();
@@ -24,7 +24,6 @@ class MeApiRoute extends BaseApi {
   constructor() {
     super();
     this.userModel = new UserModel();
-    this.tokenModel = new TokenModel();
   }
 
   /**
@@ -50,6 +49,7 @@ class MeApiRoute extends BaseApi {
         } else {
           const copy = { ...user };
           delete copy.id;
+          // @ts-ignore
           copy.loggedIn = true;
           res.send(copy);
         }

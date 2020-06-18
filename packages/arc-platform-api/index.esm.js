@@ -20,7 +20,8 @@ import passport from 'passport';
 import { default as config, ckeckApiConfig } from '@advanced-rest-client/backend-config';
 import logging from '@advanced-rest-client/arc-platform-logger';
 import { router as Oauth2router } from './lib/oauth2.js';
-import apiRouter from './api/index.js';
+import CiRoute from './api/CiRoute.js';
+import ArcApiRoute from './api/ArcApiRoute.js';
 
 ckeckApiConfig();
 
@@ -59,7 +60,8 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(Oauth2router);
 // API
-app.use('/v2', apiRouter);
+app.use('/v2/app/', ArcApiRoute);
+app.use('/v2/ci/', CiRoute);
 // // API console
 // app.use('/', express.static(path.join(__dirname, 'api-docs')));
 app.get('/_ah/health', (req, res) => {

@@ -3,7 +3,7 @@ import bodyParser from 'body-parser';
 import { BaseApi } from './BaseApi.js';
 import { CoverageModel } from '@advanced-rest-client/backend-models';
 
-/** @typedef {import('express').Request} Request */
+/** @typedef {import('./BaseApi').SessionRequest} Request */
 /** @typedef {import('express').Response} Response */
 
 const router = express.Router();

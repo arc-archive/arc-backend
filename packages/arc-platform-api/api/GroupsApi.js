@@ -4,8 +4,8 @@ import { ComponentModel } from '@advanced-rest-client/backend-models';
 import logging from '@advanced-rest-client/arc-platform-logger';
 import { BaseApi } from './BaseApi.js';
 
+/** @typedef {import('./BaseApi').SessionRequest} Request */
 /** @typedef {import('express').Response} Response */
-/** @typedef {import('express').Request} Request */
 
 const router = express.Router();
 export default router;

@@ -1,9 +1,10 @@
 import { BaseModel } from './BaseModel.js';
-import { v4 as uuidv4 } from '@advanced-rest-client/uuid-generator';
+import uuidv4 from '@advanced-rest-client/uuid-generator/src/v4.js';
 
 /** @typedef {import('./ComponentBuildModel').EditableComponentBuildEntity} EditableComponentBuildEntity */
 /** @typedef {import('./ComponentBuildModel').ComponentBuildEntity} ComponentBuildEntity */
 /** @typedef {import('./ComponentBuildModel').ComponentBuildQueryResult} ComponentBuildQueryResult */
+/** @typedef {import('./ComponentBuildModel').ComponentBuildQueryOptions} ComponentBuildQueryOptions */
 
 /**
  * A list of properties to exclude from indexing.
@@ -26,25 +27,25 @@ export class ComponentBuildModel extends BaseModel {
 
   /**
    * Lists test runs
-   * @param {number=} [limit=25] A number of results to return.
-   * @param {string=} nextPageToken A page token value.
+   * @param {ComponentBuildQueryOptions=} opts Query options
    * @return {Promise<ComponentBuildQueryResult>} Query results.
    */
-  async list(limit=25, nextPageToken) {
+  async list(opts={}) {
+    const { limit=this.listLimit, pageToken } = opts;
     let query = this.store.createQuery(this.namespace, this.buildKind);
     query = query.order('created', {
       descending: true,
     });
     query = query.limit(limit);
-    if (nextPageToken) {
-      query = query.start(nextPageToken);
+    if (pageToken) {
+      query = query.start(pageToken);
     }
     const [entitiesRaw, queryInfo] = await this.store.runQuery(query);
     const entities = entitiesRaw.map(this.fromDatastore.bind(this));
-    const pageToken = queryInfo.moreResults !== this.NO_MORE_RESULTS ? queryInfo.endCursor : undefined;
+    const newPageToken = queryInfo.moreResults !== this.NO_MORE_RESULTS ? queryInfo.endCursor : undefined;
     return {
       entities,
-      pageToken,
+      pageToken: newPageToken,
     };
   }
 
@@ -74,7 +75,7 @@ export class ComponentBuildModel extends BaseModel {
       },
       {
         name: 'status',
-        value: 'queued',
+        value: info.status || 'queued',
         excludeFromIndexes: true,
       },
       {

@@ -1,4 +1,9 @@
 export {
+  QueryResult,
+  QueryOptions,
+} from './src/BaseModel';
+
+export {
   AnalyticsModel,
   DailyUsersQueryResult,
   WeeklyUsersQueryResult,
@@ -16,7 +21,7 @@ export {
 export {
   ComponentBuildModel,
   EditableComponentBuildEntity,
-  ComponentBuildEntiry,
+  ComponentBuildEntity,
 } from './src/ComponentBuildModel';
 export {
   ComponentModel,

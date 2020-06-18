@@ -80,7 +80,7 @@ export class UserModel extends BaseModel {
    * @param refreshToken OAuth refresh token. Not required.
    * @returns A promise resolved to user id.
    */
-  createUser(profile: PassportProfile, refreshToken?: string): Promise<String>;
+  createUser(profile: PassportProfile, refreshToken?: string): Promise<string>;
 
   /**
    * Returns a user if already exists or creates new user and returns new profile.

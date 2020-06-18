@@ -6,14 +6,9 @@ import { AccessError } from './Errors.js';
 /* eslint-disable class-methods-use-this */
 
 /** @typedef {import('express').Response} Response */
-/** @typedef {import('express').Request} Request */
+/** @typedef {import('./BaseApi').SessionRequest} Request */
 /** @typedef {import('express').Router} Router */
-
-/**
- * @typedef {object} QueryResult
- * @property {object[]} entities The list of entities to send with the response
- * @property {string=} pageToken The page token used in pagination
- */
+/** @typedef {import('@advanced-rest-client/backend-models').QueryResult} QueryResult */
 
 let tokenModel;
 
@@ -88,7 +83,7 @@ export class BaseApi {
   async isValidAccess(req, scope) {
     // @ts-ignore
     const { user } = req;
-    if (user && (user.orgUser || user.superUser)) {
+    if (user && user.orgUser) {
       return true;
     }
     const auth = req.get('authorization');
