@@ -83,6 +83,17 @@ export declare interface VersionCreateOptions {
   changeLog: string;
 }
 
+export declare interface TagsProcessOptions {
+  /**
+   * When set it does not affect existing tags when `tags` is not defined
+   */
+  keepTags?: boolean;
+  /**
+   * List of tags to add to the entity
+   */
+  tags?: string[];
+}
+
 /**
  * A model for catalog items.
  */
@@ -101,14 +112,14 @@ export declare class ComponentModel extends BaseModel {
    * @param name Group name
    * @returns A key for a group
    */
-  _createGroupKey(name: string): entity.Key;
+  createGroupKey(name: string): entity.Key;
 
   /**
    * @param groupName Group name
    * @param componentName Component name
    * @returns A key for a component
    */
-  _createComponentKey(groupName: string, componentName: string): entity.Key;
+  createComponentKey(groupName: string, componentName: string): entity.Key;
 
   /**
    * Creates datastore key for version object
@@ -116,7 +127,7 @@ export declare class ComponentModel extends BaseModel {
    * @param componentName Component name
    * @param version Component version
    */
-  _createVersionKey(groupName: string, componentName: string, version: string): entity.Key;
+  createVersionKey(groupName: string, componentName: string, version: string): entity.Key;
 
   /**
    * Finds largest non-pre-release version in the list of versions.
@@ -203,7 +214,7 @@ export declare class ComponentModel extends BaseModel {
    *
    * @param groupName Name of the group
    */
-  _ensureGroup(groupName: string): Promise<GroupEntity>;
+  ensureGroup(groupName: string): Promise<GroupEntity>;
 
   /**
    * Returns group model.
@@ -218,7 +229,7 @@ export declare class ComponentModel extends BaseModel {
    * @param key Key of the entity.
    * @returns Generated model.
    */
-  _createGroup(name: string, key: entity.Key): Promise<GroupEntity>;
+  createGroup(name: string, key: entity.Key): Promise<GroupEntity>;
 
   /**
    * Test if component data are already stored and creates a model if not.
@@ -228,8 +239,9 @@ export declare class ComponentModel extends BaseModel {
    * @param groupName Component's group
    * @param pkg Component package name
    * @param org Component organization
+   * @param tags Tags processing options
    */
-  _ensureComponent(version: string, componentName: string, groupName: string, pkg: string, org: string): Promise<ComponentEntity>;
+  ensureComponent(version: string, componentName: string, groupName: string, pkg: string, org: string, tags?: TagsProcessOptions): Promise<ComponentEntity>;
 
   /**
    * Returns component definition.
@@ -247,18 +259,20 @@ export declare class ComponentModel extends BaseModel {
    * @param pkg Component package name
    * @param org Component organization
    * @param key Key of the entity.
+   * @param tags Tags processing options
    * @returns Generated model.
    */
-  _createComponent(name: string, version: string, groupName: string, pkg: string, org: string, key: entity.Key): Promise<ComponentEntity>;
+  createComponent(name: string, version: string, groupName: string, pkg: string, org: string, key: entity.Key, tags?: TagsProcessOptions): Promise<ComponentEntity>;
 
   /**
    * Adds a new version to the component model.
    * @param model Existing model
    * @param version Version number
    * @param key Datastore key
+   * @param tags Tags processing options
    * @returns updated model
    */
-  _addComponentVersion(model: ComponentEntity, version: string, key: entity.Key): Promise<ComponentEntity>;
+  addComponentVersion(model: ComponentEntity, version: string, key: entity.Key, tags?: TagsProcessOptions): Promise<ComponentEntity>;
 
   /**
    * Replaces/creates version in the datastrore
@@ -271,7 +285,7 @@ export declare class ComponentModel extends BaseModel {
    * @param {String=} changelog Version changelog
    * @return {Promise<void>}
    */
-  _ensureVersion(parent: ComponentEntity, version: string, componentName: string, groupName: string, data: object, changelog?: string): Promise<void>;
+  ensureVersion(parent: ComponentEntity, version: string, componentName: string, groupName: string, data: object, changelog?: string): Promise<void>;
 
   /**
    * Creates component version entity.
@@ -283,7 +297,7 @@ export declare class ComponentModel extends BaseModel {
    * @param docs Polymer analysis result
    * @param changelog Generated changelog
    */
-  _createVersion(parent: ComponentEntity, version: string, componentName: string, groupName: string, docs: object, changelog?: string): Promise<void>;
+  createVersion(parent: ComponentEntity, version: string, componentName: string, groupName: string, docs: object, changelog?: string): Promise<void>;
 
   /**
    * Returns component definition.

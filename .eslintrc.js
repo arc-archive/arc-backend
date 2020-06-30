@@ -93,5 +93,21 @@ module.exports = {
     'prefer-template': 'error',
     'no-return-await': 'error',
     'no-template-curly-in-string': 'error',
+    'indent': [
+      'error',
+      2,
+      {
+        SwitchCase: 1,
+        VariableDeclarator: 1,
+        outerIIFEBody: 0,
+        MemberExpression: 0,
+      },
+    ],
+    'no-shadow': [
+      'error',
+      {
+        builtinGlobals: true,
+      },
+    ],
   },
 };
