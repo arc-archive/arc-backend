@@ -5,6 +5,13 @@ import Chance from 'chance';
 /** @typedef {import('./DataHelper').ComponentInsertOptions} ComponentInsertOptions */
 /** @typedef {import('./DataHelper').ComponentInsertResult} ComponentInsertResult */
 /** @typedef {import('./DataHelper').CreateComponentVersionResult} CreateComponentVersionResult */
+/** @typedef {import('../src/CoverageModel').EditableCoverageEntity} EditableCoverageEntity */
+/** @typedef {import('../src/CoverageModel').CoverageModel} CoverageModel */
+/** @typedef {import('../src/CoverageModel').CoverageEntity} CoverageEntity */
+/** @typedef {import('../src//CoverageModel').CoverageResult} CoverageResult */
+/** @typedef {import('../src//CoverageModel').CoverageSummaryResult} CoverageSummaryResult */
+/** @typedef {import('../src//CoverageModel').CoverageReport} CoverageReport */
+/** @typedef {import('../src//CoverageModel').CoverageFileResult} CoverageFileResult */
 
 const chance = new Chance();
 
@@ -105,6 +112,87 @@ class DataHelper {
     const docs = chance.sentence();
     const changeLog = chance.paragraph();
     return { group, component, version, pkg, org, docs, changeLog };
+  }
+
+  /**
+   * @return {EditableCoverageEntity}
+   */
+  generateCoverageModel() {
+    return {
+      component: chance.word(),
+      org: chance.word(),
+      tag: chance.word(),
+      branch: chance.word(),
+      creator: {
+        id: chance.guid(),
+        displayName: chance.name(),
+      },
+    };
+  }
+
+  /**
+   * @param {CoverageModel} model
+   * @param {number} sample
+   * @return {Promise<CoverageEntity[]>}
+   */
+  async populateCoverageEntities(model, sample=10) {
+    const promises = Array(sample).fill(0).map(() => model.insert(this.generateCoverageModel()));
+    return Promise.all(promises);
+  }
+
+  /**
+   * @param {number=} sample Files sample
+   * @return {CoverageResult}
+   */
+  generateCoverageReport(sample) {
+    return {
+      summary: this.generateCoverageReportSummary(),
+      details: this.generateCoverageReportDetails(sample),
+    };
+  }
+
+  /**
+   * @return {CoverageSummaryResult}
+   */
+  generateCoverageReportSummary() {
+    return {
+      functions: chance.integer({ min: 0, max: 100 }),
+      lines: chance.integer({ min: 0, max: 100 }),
+      branches: chance.integer({ min: 0, max: 100 }),
+      coverage: chance.integer({ min: 0, max: 100 }),
+    };
+  }
+
+  /**
+   * @param {number=} [sample=1]
+   * @return {CoverageReport[]}
+   */
+  generateCoverageReportDetails(sample=1) {
+    return Array(sample).fill(0).map(() => {
+      const functions = this.generateCoverageFileResult();
+      const lines = this.generateCoverageFileResult();
+      const branches = this.generateCoverageFileResult();
+      const coverage = chance.integer({ min: 0, max: 100 });
+      return {
+        functions,
+        lines,
+        branches,
+        coverage,
+        file: chance.word(),
+      };
+    });
+  }
+
+  /**
+   * @return {CoverageFileResult}
+   */
+  generateCoverageFileResult() {
+    const found = chance.integer({ min: 10, max: 500 });
+    const hit = chance.integer({ min: 0, max: found });
+    return {
+      hit,
+      found,
+    };
   }
 }
 

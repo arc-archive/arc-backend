@@ -114,9 +114,17 @@ export declare interface CoverageReport {
   coverage: number;
 }
 
+declare interface CoverageRelatedEntity {
+  /**
+   * The id of the coverage run for the entity.
+   */
+  coverageId: string;
+}
+
+export declare interface CoverageReportEntity extends CoverageReport, CoverageRelatedEntity, Entity {}
 export declare interface CoverageQueryResult extends QueryResult<CoverageEntity> {}
 export declare interface CoverageQueryOptions extends QueryOptions {}
-
+export declare interface CoverageFilesQueryOptions extends QueryOptions {}
 export declare interface CoverageResult {
   /**
    * The summary value for the coverage runs listing
@@ -126,6 +134,20 @@ export declare interface CoverageResult {
    * Detailed results per file.
    */
   details: CoverageReport[];
+}
+export declare interface CoverageComponentVersionEntity extends CoverageRelatedEntity, Entity {
+  coverage: CoverageSummaryResult,
+  version: string;
+}
+export declare interface CoverageComponentEntity extends CoverageRelatedEntity, Entity {
+  /**
+   * Coverage summary
+   */
+  coverage: CoverageSummaryResult,
+  /**
+   * The version id that generated this report (the latest version)
+   */
+  version: string;
 }
 
 /**
@@ -153,7 +175,7 @@ export class CoverageModel extends BaseModel {
    * Reads a single coverage run from the data store
    * @param id The id of the coverage run
    */
-  get(id: string): Promise<CoverageEntity>;
+  get(id: string): Promise<CoverageEntity|null>;
 
   /**
    * Marks coverage run as started
@@ -185,12 +207,20 @@ export class CoverageModel extends BaseModel {
   _finishRunSummary(transaction: Transaction, key: entity.Key, run: CoverageEntity, coverage: CoverageResult): void;
 
   /**
-   * Creates coverage data entry for a component version
+   * Creates coverage data entry for each file in the run
    * @param transaction Datastore transaction
    * @param run Coverage run model
    * @param coverage Coverage results
    */
   _addComponentCoverageRun(transaction: Transaction, run: CoverageEntity, coverage: CoverageResult): void;
+
+  /**
+   * Queries for coverage results for each file in the run.
+   * @param runId The ID of the test run
+   * @param opts Query options
+   * @return List of enties to return.
+   */
+  queryRunFiles(runId: string, opts?: CoverageFilesQueryOptions): Promise<QueryResult<CoverageReportEntity>>;
 
   /**
    * Creates coverage data entry for a component version
@@ -209,6 +239,21 @@ export class CoverageModel extends BaseModel {
    * @param coverage Coverage results
    */
   _addComponentCoverage(transaction: Transaction, run: CoverageEntity, coverage: CoverageResult): void;
+
+  /**
+   * Reads a coverage for a version
+   * @param org The component's organization
+   * @param component The component name
+   */
+  getComponentCoverage(org: string, component: string): Promise<CoverageComponentEntity|null>;
+
+  /**
+   * Reads a coverage for a version
+   * @param org The component's organization
+   * @param component The component name
+   * @param version The version of the component to query for the result for.
+   */
+  getVersionCoverage(org: string, component: string, version: string): Promise<CoverageComponentVersionEntity|null>;
 
   /**
    * Removes the coverage run.

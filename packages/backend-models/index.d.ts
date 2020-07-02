@@ -47,6 +47,9 @@ export {
   CoverageQueryResult,
   CoverageQueryOptions,
   CoverageResult,
+  CoverageComponentVersionEntity,
+  CoverageReportEntity,
+  CoverageFilesQueryOptions,
 } from './src/CoverageModel';
 export { Creator } from './src/Creator';
 export { DependencyModel, DependencyEntity } from './src/DependencyModel';

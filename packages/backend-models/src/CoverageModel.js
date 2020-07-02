@@ -9,6 +9,10 @@ import { BaseModel } from './BaseModel.js';
 /** @typedef {import('./CoverageModel').CoverageQueryResult} CoverageQueryResult */
 /** @typedef {import('./CoverageModel').CoverageQueryOptions} CoverageQueryOptions */
 /** @typedef {import('./CoverageModel').CoverageResult} CoverageResult */
+/** @typedef {import('./CoverageModel').CoverageFilesQueryOptions} CoverageFilesQueryOptions */
+/** @typedef {import('./CoverageModel').CoverageComponentVersionEntity} CoverageComponentVersionEntity */
+/** @typedef {import('./CoverageModel').CoverageComponentEntity} CoverageComponentEntity */
+/** @typedef {import('./BaseModel').QueryResult} QueryResult */
 
 /**
  * Properties excluded from indexes
@@ -57,7 +61,7 @@ export class CoverageModel extends BaseModel {
    */
   async list(opts={}) {
     const { limit=this.listLimit, pageToken } = opts;
-    let query = this.store.createQuery(this.namespace, this.testKind);
+    let query = this.store.createQuery(this.coverageNamespace, this.coverageRunKind);
     query = query.limit(limit);
     query = query.order('created', {
       descending: true,
@@ -105,43 +109,10 @@ export class CoverageModel extends BaseModel {
     return this.get(keyName);
   }
 
-  // /**
-  //  * Resets a run state of a coverage for a component.
-  //  * @param {String} runId The id of the test run.
-  //  * @return {Promise<void>}
-  //  */
-  // async reset(runId) {
-  //   const transaction = this.store.transaction();
-  //   const key = this.createCoverageRunKey(runId);
-  //   try {
-  //     await transaction.run();
-  //     const data = await transaction.get(key);
-  //     const run = /** @type CoverageEntity */ (data[0]);
-  //     run.status = 'queued';
-  //     delete run.functions;
-  //     delete run.lines;
-  //     delete run.branches;
-  //     delete run.coverage;
-  //     delete run.endTime;
-  //     delete run.error;
-  //     delete run.message;
-  //     transaction.save({
-  //       key,
-  //       data: run,
-  //       excludeFromIndexes: excludedIndexes,
-  //     });
-  //     await transaction.commit();
-  //     background.queueCoverageRun(runId);
-  //   } catch (e) {
-  //     transaction.rollback();
-  //     throw e;
-  //   }
-  // }
-
   /**
    * Reads a single coverage run from the data store
    * @param {string} id The id of the coverage run
-   * @return {Promise<CoverageEntity>}
+   * @return {Promise<CoverageEntity|null>}
    */
   async get(id) {
     const key = this.createCoverageRunKey(id);
@@ -150,6 +121,7 @@ export class CoverageModel extends BaseModel {
     if (result) {
       return this.fromDatastore(result);
     }
+    return null;
   }
 
   /**
@@ -163,12 +135,12 @@ export class CoverageModel extends BaseModel {
     try {
       await transaction.run();
       const data = await transaction.get(key);
-      const run = /** @type CoverageEntity */ (data[0]);
-      run.status = 'running';
-      run.startTime = Date.now();
+      const item = /** @type CoverageEntity */ (data[0]);
+      item.status = 'running';
+      item.startTime = Date.now();
       transaction.save({
         key,
-        data: run,
+        data: item,
         excludeFromIndexes: excludedIndexes,
       });
       await transaction.commit();
@@ -190,14 +162,14 @@ export class CoverageModel extends BaseModel {
     try {
       await transaction.run();
       const data = await transaction.get(key);
-      const run = /** @type CoverageEntity */ (data[0]);
-      run.status = 'finished';
-      run.endTime = Date.now();
-      run.error = true;
-      run.message = message;
+      const item = /** @type CoverageEntity */ (data[0]);
+      item.status = 'finished';
+      item.endTime = Date.now();
+      item.error = true;
+      item.message = message;
       transaction.save({
         key,
-        data: run,
+        data: item,
         excludeFromIndexes: excludedIndexes,
       });
       await transaction.commit();
@@ -219,11 +191,11 @@ export class CoverageModel extends BaseModel {
     try {
       await transaction.run();
       const data = await transaction.get(key);
-      const run = /** @type CoverageEntity */ (data[0]);
-      this._finishRunSummary(transaction, key, run, coverage);
-      this._addComponentCoverageRun(transaction, run, coverage);
-      this._addComponentVersionCoverage(transaction, run, coverage);
-      await this._addComponentCoverage(transaction, run, coverage);
+      const item = /** @type CoverageEntity */ (data[0]);
+      this._finishRunSummary(transaction, key, item, coverage);
+      this._addComponentCoverageRun(transaction, item, coverage, runId);
+      this._addComponentVersionCoverage(transaction, item, coverage, runId);
+      await this._addComponentCoverage(transaction, item, coverage, runId);
       await transaction.commit();
     } catch (e) {
       transaction.rollback();
@@ -235,12 +207,12 @@ export class CoverageModel extends BaseModel {
    * Updates values on the coverage run and stores the data in a transaction.
    * @param {Transaction} transaction Datastore transaction
    * @param {Key} key Datastore key
-   * @param {CoverageEntity} run Coverage run model
+   * @param {CoverageEntity} item Coverage run model
    * @param {CoverageResult} coverage Coverage results
    */
-  _finishRunSummary(transaction, key, run, coverage) {
-    run.status = 'finished';
-    run.endTime = Date.now();
+  _finishRunSummary(transaction, key, item, coverage) {
+    item.status = 'finished';
+    item.endTime = Date.now();
     const report = { ...coverage.summary };
     if (report.branches === null) {
       delete report.branches;
@@ -251,25 +223,28 @@ export class CoverageModel extends BaseModel {
     if (report.lines === null) {
       delete report.lines;
     }
-    run.coverage = report;
+    item.coverage = report;
     transaction.save({
       key,
-      data: run,
+      data: item,
       excludeFromIndexes: excludedIndexes,
     });
   }
 
   /**
-   * Creates coverage data entry for a component version
+   * Creates coverage data entry for each file in the run
+   *
    * @param {Transaction} transaction Datastore transaction
-   * @param {CoverageEntity} run Coverage run model
-   * @param {CoverageResult} coverage Coverage results
+   * @param {CoverageEntity} item Coverage run model
+   * @param {CoverageResult} report Coverage results
+   * @param {string} coverageId Test run ID related to this coverage
    */
-  _addComponentCoverageRun(transaction, run, coverage) {
-    const { details } = coverage;
-    const { component, tag, org } = run;
+  _addComponentCoverageRun(transaction, item, report, coverageId) {
+    const { details } = report;
+    const { component, tag, org } = item;
     details.forEach((detail) => {
-      const { file, title, functions, lines, branches, coverage } = detail;
+      const { file = uuidv4(), title, functions, lines, branches, coverage } = detail;
+      // file here has a default value just in case Karma decided not to report this.
       const key = this.createComponentVersionFileCoverageKey(component, org, tag, file);
       transaction.save({
         key,
@@ -286,6 +261,7 @@ export class CoverageModel extends BaseModel {
           'branches.hit',
           'branches.found',
           'coverage',
+          'coverageId',
         ],
         data: {
           file,
@@ -294,20 +270,49 @@ export class CoverageModel extends BaseModel {
           lines,
           branches,
           coverage,
+          coverageId,
         },
       });
     });
   }
 
   /**
+   * Queries for coverage results for each file in the run.
+   * @param {string} runId The ID of the test run
+   * @param {CoverageFilesQueryOptions=} opts Query options
+   * @return {Promise<QueryResult>} List of enties to return.
+   */
+  async queryRunFiles(runId, opts={}) {
+    const runModel = await this.get(runId);
+    const { component, org, tag } = runModel;
+    const key = this.createComponentVersionCoverageKey(component, org, tag);
+    const { limit=this.listLimit, pageToken } = opts;
+    let query = this.store.createQuery(this.coverageNamespace, this.coverageComponentKind);
+    query = query.hasAncestor(key);
+    query = query.limit(limit);
+    if (pageToken) {
+      query = query.start(pageToken);
+    }
+
+    const [entitiesRaw, queryInfo] = await this.store.runQuery(query);
+    const entities = entitiesRaw.map(this.fromDatastore.bind(this));
+    const newPageToken = queryInfo.moreResults !== this.NO_MORE_RESULTS ? queryInfo.endCursor : undefined;
+    return {
+      entities,
+      pageToken: newPageToken,
+    };
+  }
+
+  /**
    * Creates coverage data entry for a component version
    * @param {Transaction} transaction Datastore transaction
-   * @param {CoverageEntity} run Coverage run model
+   * @param {CoverageEntity} item Coverage run model
    * @param {CoverageResult} coverage Coverage results
+   * @param {string} coverageId Test run ID related to this coverage
    */
-  _addComponentVersionCoverage(transaction, run, coverage) {
+  _addComponentVersionCoverage(transaction, item, coverage, coverageId) {
     const { summary } = coverage;
-    const { component, tag, org } = run;
+    const { component, tag, org } = item;
     const key = this.createComponentVersionCoverageKey(component, org, tag);
     transaction.save({
       key,
@@ -318,12 +323,31 @@ export class CoverageModel extends BaseModel {
         'coverage.branches',
         'coverage.coverage',
         'version',
+        'coverageId',
       ],
       data: {
         coverage: summary,
         version: tag,
+        coverageId,
       },
     });
+  }
+
+  /**
+   * Reads a coverage for a version
+   * @param {string} org The component's organization
+   * @param {string} component The component name
+   * @param {string} version The version of the component to query for the result for.
+   * @return {Promise<CoverageComponentVersionEntity|null>}
+   */
+  async getVersionCoverage(org, component, version) {
+    const key = this.createComponentVersionCoverageKey(component, org, version);
+    const entity = await this.store.get(key);
+    const result = entity && entity[0];
+    if (result) {
+      return this.fromDatastore(result);
+    }
+    return null;
   }
 
   /**
@@ -331,11 +355,12 @@ export class CoverageModel extends BaseModel {
    * the current stored in the data store.
    *
    * @param {Transaction} transaction Datastore transaction
-   * @param {CoverageEntity} run Coverage run model
+   * @param {CoverageEntity} item Coverage run model
    * @param {CoverageResult} coverage Coverage results
+   * @param {string} coverageId Test run ID related to this coverage
    */
-  async _addComponentCoverage(transaction, run, coverage) {
-    const { component, tag, org } = run;
+  async _addComponentCoverage(transaction, item, coverage, coverageId) {
+    const { component, tag, org } = item;
     if (semver.prerelease(tag)) {
       return;
     }
@@ -343,6 +368,7 @@ export class CoverageModel extends BaseModel {
     const data = await transaction.get(key);
     if (data && data[0]) {
       const { version } = data[0];
+      // coverage for an older version
       if (semver.gt(version, tag)) {
         return;
       }
@@ -357,12 +383,30 @@ export class CoverageModel extends BaseModel {
         'coverage.branches',
         'coverage.coverage',
         'version',
+        'coverageId',
       ],
       data: {
         coverage: summary,
         version: tag,
+        coverageId,
       },
     });
+  }
+
+  /**
+   * Reads a coverage for a version
+   * @param {string} org The component's organization
+   * @param {string} component The component name
+   * @return {Promise<CoverageComponentEntity|null>}
+   */
+  async getComponentCoverage(org, component) {
+    const key = this.createComponentCoverageKey(component, org);
+    const entity = await this.store.get(key);
+    const result = entity && entity[0];
+    if (result) {
+      return this.fromDatastore(result);
+    }
+    return null;
   }
 
   /**
