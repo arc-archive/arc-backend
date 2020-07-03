@@ -8,12 +8,15 @@ import Chance from 'chance';
 /** @typedef {import('../src/CoverageModel').EditableCoverageEntity} EditableCoverageEntity */
 /** @typedef {import('../src/CoverageModel').CoverageModel} CoverageModel */
 /** @typedef {import('../src/CoverageModel').CoverageEntity} CoverageEntity */
-/** @typedef {import('../src//CoverageModel').CoverageResult} CoverageResult */
-/** @typedef {import('../src//CoverageModel').CoverageSummaryResult} CoverageSummaryResult */
-/** @typedef {import('../src//CoverageModel').CoverageReport} CoverageReport */
-/** @typedef {import('../src//CoverageModel').CoverageFileResult} CoverageFileResult */
+/** @typedef {import('../src/CoverageModel').CoverageResult} CoverageResult */
+/** @typedef {import('../src/CoverageModel').CoverageSummaryResult} CoverageSummaryResult */
+/** @typedef {import('../src/CoverageModel').CoverageReport} CoverageReport */
+/** @typedef {import('../src/CoverageModel').CoverageFileResult} CoverageFileResult */
+/** @typedef {import('../src/DependencyModel').DependencyEntry} DependencyEntry */
+/** @typedef {import('../src/DependencyModel').DependencyModel} DependencyModel */
 
 const chance = new Chance();
+const scopes = ['@advanced-rest-client', 'anypoint-web-components', '@api-components', '@api-modeling'];
 
 /**
  * Data processing helper for models
@@ -193,6 +196,52 @@ class DataHelper {
       hit,
       found,
     };
+  }
+
+  /**
+   * @return {string} Random package name
+   */
+  generatePackageName() {
+    const scope = chance.pick(scopes);
+    return `${scope}/${chance.word()}-${chance.word()}`;
+  }
+
+  /**
+   * @param {string=} dependency A dependency to insert
+   * @return {DependencyEntry}
+   */
+  generateDependencyEntry(dependency) {
+    const dependencies = Array(chance.integer({ min: 1, max: 10 })).fill(0).map(() => this.generatePackageName());
+    const devDependencies = Array(chance.integer({ min: 1, max: 10 })).fill(0).map(() => this.generatePackageName());
+    if (dependency) {
+      dependencies.push(dependency);
+      devDependencies.push(dependency);
+    }
+    const pkg = this.generatePackageName();
+    const name = pkg.split('/')[1];
+    return {
+      org: chance.word(),
+      pkg,
+      name,
+      dependencies,
+      devDependencies,
+    };
+  }
+
+  /**
+   * @param {DependencyModel} model
+   * @param {number} sample
+   * @return {Promise<string[]>}
+   */
+  populateDepenenciesEntities(model, sample=10) {
+    const dependencies = [];
+    const promises = Array(sample).fill(0).map(() => {
+      const last = dependencies[dependencies.length - 1];
+      const d = this.generateDependencyEntry(last ? last.pkg : undefined);
+      dependencies[dependencies.length] = d;
+      return model.set(d);
+    });
+    return Promise.all(promises);
   }
 }
 

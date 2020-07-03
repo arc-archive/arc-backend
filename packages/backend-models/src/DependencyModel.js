@@ -2,6 +2,7 @@ import { BaseModel } from './BaseModel.js';
 
 /** @typedef {import('@google-cloud/datastore/build/src/entity').entity.Key} Key */
 /** @typedef {import('./DependencyModel').DependencyEntity} DependencyEntity */
+/** @typedef {import('./DependencyModel').DependencyEntry} DependencyEntry */
 
 /**
  * A model for catalog items.
@@ -27,32 +28,27 @@ export class DependencyModel extends BaseModel {
   }
 
   /**
-   * @return {string[]} Model properties excluded from indexes
-   */
-  get excludeFromIndexes() {
-    return ['pkg', 'org'];
-  }
-
-  /**
    * Adds new dependency
-   * @param {string} component Component name
-   * @param {string[]} dependencies List of dependencies (package names)
-   * @param {string[]} devDependencies List of dev dependencies (package names)
-   * @param {string} org Component GitHub organization
-   * @param {string} pkg Component package name
-   * @return {Promise<void>} [description]
+   * @param {DependencyEntry} entry The entry to insert
+   * @return {Promise<string>} The id of the created entity
    */
-  async set(component, dependencies, devDependencies, org, pkg) {
-    const key = this._createKey(component);
+  async set(entry) {
+    const { dependencies, devDependencies, org, pkg, name } = entry;
+    const key = this._createKey(pkg);
     const results = [
+      {
+        name: 'org',
+        value: org,
+        excludeFromIndexes: true,
+      },
       {
         name: 'pkg',
         value: pkg,
         excludeFromIndexes: true,
       },
       {
-        name: 'org',
-        value: org,
+        name: 'name',
+        value: name,
         excludeFromIndexes: true,
       },
     ];
@@ -75,6 +71,7 @@ export class DependencyModel extends BaseModel {
       data: results,
     };
     await this.store.upsert(entity);
+    return key.name;
   }
 
   /**
@@ -89,10 +86,11 @@ export class DependencyModel extends BaseModel {
     let deps = [];
     const [items] = await this.store.runQuery(query);
     if (items) {
-      deps = items.map((item) => ({
-        production: true,
-        name: item.pkg,
-      }));
+      deps = items.map((item) => {
+        const result = /** @type DependencyEntity */ (this.fromDatastore(item));
+        result.production = true;
+        return result;
+      });
     }
     if (includeDev) {
       const other = await this.listDevParentComponents(dependency);
@@ -116,15 +114,16 @@ export class DependencyModel extends BaseModel {
       return;
     }
     return items.map((item) => {
-      item.development = true;
-      return item;
+      const result = /** @type DependencyEntity */ (this.fromDatastore(item));
+      result.development = true;
+      return result;
     });
   }
 
   /**
    * Reads a dependency data from the store
-   * @param {string} component Component name.
-   * @return {Promise<DependencyEntity>}
+   * @param {string} component The full NPM component name (scope + name)
+   * @return {Promise<DependencyEntity|null>}
    */
   async get(component) {
     const key = this._createKey(component);

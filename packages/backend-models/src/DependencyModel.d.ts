@@ -1,15 +1,38 @@
 import { BaseModel, Entity } from './BaseModel.js';
 import {entity} from '@google-cloud/datastore/build/src/entity';
 
-export declare interface DependencyEntity extends Entity {
+export declare interface DependencyEntry {
+  /**
+   * Github organization of the package
+   */
   org: string;
+  /**
+   * Github repository name
+   */
+  name: string;
+  /**
+   * The full name of the package (scope + name)
+   */
   pkg: string;
+  /**
+   * List of package names that are dependencies of this package.
+   */
   dependencies?: string[];
+  /**
+   * List of package names that are development dependencies of this package.
+   */
   devDependencies?: string[];
+}
+
+export declare interface DependencyEntity extends DependencyEntry, Entity {
   /**
    * Added to a dependency model to mark it as this is a dev dependency of another dependency.
    */
   development?: boolean;
+  /**
+   * Added to the quesy result, marks items that are production depenmdencies
+   */
+  production?: boolean;
 }
 
 /**
@@ -30,14 +53,10 @@ export class DependencyModel extends BaseModel {
 
   /**
    * Adds new dependency
-   * @param {string} component Component name
-   * @param {string[]} dependencies List of dependencies (package names)
-   * @param {string[]} devDependencies List of dev dependencies (package names)
-   * @param {string} org Component GitHub organization
-   * @param {string} pkg Component package name
-   * @return {Promise<void>} [description]
+   * @param entry The entry to insert
+   * @returns The id of the created entity
    */
-  set(component: string, dependencies: string[], devDependencies: string[], org: string, pkg:string): Promise<void>
+  set(entry: DependencyEntry): Promise<string>;
 
   /**
    * Lists dependncies that would be a parent for a component.
@@ -56,5 +75,5 @@ export class DependencyModel extends BaseModel {
    * Reads a dependency data from the store
    * @param component Component name.
    */
-  get(component: string): Promise<DependencyEntity>;
+  get(component: string): Promise<DependencyEntity|null>;
 }

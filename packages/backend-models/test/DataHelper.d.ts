@@ -1,6 +1,7 @@
 import { BaseModel } from '../src/BaseModel';
 import { entity } from '@google-cloud/datastore/build/src/entity';
 import { CoverageModel, EditableCoverageEntity, CoverageEntity, CoverageResult, CoverageSummaryResult, CoverageReport, CoverageFileResult } from '../src/CoverageModel';
+import { DependencyEntry, DependencyModel } from '../src/DependencyModel';
 
 export declare interface ComponentInsertOptions {
   name?: string;
@@ -35,6 +36,9 @@ export declare class DataHelper {
   generateCoverageReportSummary(): CoverageSummaryResult;
   generateCoverageReportDetails(sample?: number): CoverageReport[];
   generateCoverageFileResult(): CoverageFileResult;
+  generatePackageName(): string;
+  generateDependencyEntry(devDependencies?: string): DependencyEntry;
+  populateDepenenciesEntities(model: DependencyModel, sample?: number):Promise<string[]>;
 }
 
 declare const instance: DataHelper;
