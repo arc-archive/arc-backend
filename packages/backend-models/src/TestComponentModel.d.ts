@@ -28,7 +28,7 @@ export declare interface TestComponentEntity extends Entity, BaseTestComponentEn
   /**
    * Whether has log data for the test
    */
-  hasLogs?: number;
+  hasLogs?: boolean;
   /**
    * Indicates run error
    */
@@ -36,7 +36,7 @@ export declare interface TestComponentEntity extends Entity, BaseTestComponentEn
   /**
    * Error message
    */
-  message?: boolean;
+  message?: string;
 }
 
 export declare interface TestComponentQueryResult extends QueryResult<TestComponentEntity> {}

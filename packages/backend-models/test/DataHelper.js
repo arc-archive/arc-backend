@@ -14,9 +14,12 @@ import Chance from 'chance';
 /** @typedef {import('../src/CoverageModel').CoverageFileResult} CoverageFileResult */
 /** @typedef {import('../src/DependencyModel').DependencyEntry} DependencyEntry */
 /** @typedef {import('../src/DependencyModel').DependencyModel} DependencyModel */
+/** @typedef {import('../src/TestReport').TestReport} TestReport */
+/** @typedef {import('../src/TestReport').TestBrowserResult} TestBrowserResult */
+/** @typedef {import('../src/TestComponentModel').TestComponentModel} TestComponentModel */
 
 const chance = new Chance();
-const scopes = ['@advanced-rest-client', 'anypoint-web-components', '@api-components', '@api-modeling'];
+const scopes = ['@advanced-rest-client', '@anypoint-web-components', '@api-components', '@api-modeling'];
 
 /**
  * Data processing helper for models
@@ -242,6 +245,64 @@ class DataHelper {
       return model.set(d);
     });
     return Promise.all(promises);
+  }
+
+  /**
+   * @return {TestBrowserResult}
+   */
+  generateTestBrowserResult() {
+    return {
+      browser: chance.word(),
+      endTime: chance.timestamp(),
+      startTime: chance.timestamp(),
+      total: chance.integer({ min: 10 }),
+      success: chance.integer({ min: 10 }),
+      failed: chance.integer({ min: 1 }),
+      skipped: chance.integer({ min: 10 }),
+      error: chance.integer({ min: 10 }),
+      message: chance.sentence(),
+      logs: chance.sentence(),
+    };
+  }
+
+  /**
+   * @param {number} [results=2]
+   * @return {TestReport}
+   */
+  generateTestReport(results=2) {
+    return {
+      error: chance.bool(),
+      total: chance.integer({ min: 10 }),
+      success: chance.integer({ min: 10 }),
+      failed: chance.integer({ min: 1 }),
+      skipped: chance.integer({ min: 10 }),
+      results: Array(results).fill(0).map(() => this.generateTestBrowserResult()),
+    };
+  }
+
+  /**
+   * @param {TestComponentModel} model
+   * @param {string=} testId
+   * @param {number=} sample
+   * @return {Promise<void>}
+   */
+  async populateComponentTestReports(model, testId='test123', sample=25) {
+    const transaction = model.store.transaction();
+    await transaction.run();
+    Array(sample).fill(0).forEach(() => {
+      const component = this.generatePackageName();
+      const key = model.createTestComponentKey(testId, component);
+      const entity = {
+        key,
+        data: {
+          component,
+          status: 'running',
+          startTime: Date.now(),
+        },
+      };
+      transaction.upsert(entity);
+    });
+    await transaction.commit();
   }
 }
 

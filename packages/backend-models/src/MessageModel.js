@@ -8,7 +8,7 @@ import { BaseModel } from './BaseModel.js';
 /** @typedef {import('./MessageModel').MessageQueryResult} MessageQueryResult */
 
 /**
- * Advanced REST CLient message entity
+ * Advanced REST Client message entity
  */
 export class MessageModel extends BaseModel {
   /**

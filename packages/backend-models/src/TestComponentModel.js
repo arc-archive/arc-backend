@@ -5,6 +5,10 @@ import { BaseModel } from './BaseModel.js';
 /** @typedef {import('./TestComponentModel').TestComponentQueryOptions} TestComponentQueryOptions */
 /** @typedef {import('./TestComponentModel').TestComponentQueryResult} TestComponentQueryResult */
 
+const excludedIndexes = [
+  'total', 'success', 'failed', 'skipped', 'status', 'hasLogs', 'message', 'error', 'startTime',
+];
+
 /**
  * A model for a componet test results in a run.
  */
@@ -19,15 +23,15 @@ export class TestComponentModel extends BaseModel {
   /**
    * Creates a "running" test for a component.
    * @param {string} testId The ID of the test
-   * @param {string} componentName The name of the component associated with the test
+   * @param {string} component The name of the component associated with the test (scope + name)
    * @return {Promise<void>}
    */
-  async create(testId, componentName) {
-    const key = this.createTestComponentKey(testId, componentName);
+  async create(testId, component) {
+    const key = this.createTestComponentKey(testId, component);
     const results = [
       {
         name: 'component',
-        value: componentName,
+        value: component,
         excludeFromIndexes: true,
       },
       {
@@ -38,6 +42,7 @@ export class TestComponentModel extends BaseModel {
       {
         name: 'startTime',
         value: Date.now(),
+        excludeFromIndexes: true,
       },
     ];
 
@@ -46,15 +51,20 @@ export class TestComponentModel extends BaseModel {
       data: results,
     };
 
+    const transaction = this.store.transaction();
     try {
-      const [existing] = await this.store.get(key);
+      await transaction.run();
+      const data = await transaction.get(key);
+      const [existing] = data;
       if (existing) {
-        await this.store.delete(key);
+        transaction.delete(key);
       }
-    } catch (_) {
-      // ...
+      transaction.upsert(entity);
+      await transaction.commit();
+    } catch (cause) {
+      await transaction.rollback();
+      throw cause;
     }
-    await this.store.upsert(entity);
   }
 
   /**
@@ -65,13 +75,9 @@ export class TestComponentModel extends BaseModel {
    */
   async get(testId, componentName) {
     const key = this.createTestComponentKey(testId, componentName);
-    try {
-      const [existing] = await this.store.get(key);
-      if (existing) {
-        return this.fromDatastore(existing);
-      }
-    } catch (_) {
-      // ...
+    const [existing] = await this.store.get(key);
+    if (existing) {
+      return this.fromDatastore(existing);
     }
     return null;
   }
@@ -79,31 +85,31 @@ export class TestComponentModel extends BaseModel {
   /**
    * Updates component test results with the data from the test report.
    * @param {string} testId The ID of the test
-   * @param {string} componentName The name of the component associated with the test
+   * @param {string} component The name of the component associated with the test (scope + name)
    * @param {TestReport} report The name of the component associated with the test
    * @return {Promise<void>}
    */
-  async updateComponent(testId, componentName, report) {
+  async updateComponent(testId, component, report) {
     const transaction = this.store.transaction();
-    const key = this.createTestComponentKey(testId, componentName);
+    const key = this.createTestComponentKey(testId, component);
     try {
       await transaction.run();
       const data = await transaction.get(key);
-      const [component] = data;
+      const entity = /** @type TestComponentEntity */ (data[0]);
       let status = report.error ? 'failed' : 'passed';
       if (!report.error && report.failed) {
         status = 'failed';
       }
-      component.status = status;
-      component.total = report.total;
-      component.success = report.success;
-      component.failed = report.failed;
-      component.skipped = report.skipped;
-      component.hasLogs = !!report.results.length;
+      entity.status = status;
+      entity.total = report.total;
+      entity.success = report.success;
+      entity.failed = report.failed;
+      entity.skipped = report.skipped;
+      entity.hasLogs = !!report.results.length;
       transaction.save({
         key,
-        data: component,
-        excludeFromIndexes: ['total', 'success', 'failed', 'skipped', 'status', 'hasLogs'],
+        data: entity,
+        excludeFromIndexes: excludedIndexes,
       });
       await transaction.commit();
     } catch (cause) {
@@ -116,25 +122,25 @@ export class TestComponentModel extends BaseModel {
    * Updates the component to the error state.
    *
    * @param {string} testId The ID of the test
-   * @param {string} componentName The name of the component associated with the test
+   * @param {string} component The name of the component associated with the test (scope + name)
    * @param {string} message Error message
    * @return {Promise<void>}
    */
-  async updateComponentError(testId, componentName, message) {
+  async updateComponentError(testId, component, message) {
     const transaction = this.store.transaction();
-    const key = this.createTestComponentKey(testId, componentName);
+    const key = this.createTestComponentKey(testId, component);
     try {
       await transaction.run();
       const data = await transaction.get(key);
-      const [component] = data;
-      component.status = 'failed';
-      component.error = true;
-      component.hasLogs = false;
-      component.message = message;
+      const entity = /** @type TestComponentEntity */ (data[0]);
+      entity.status = 'failed';
+      entity.error = true;
+      entity.hasLogs = false;
+      entity.message = message;
       transaction.save({
         key,
-        data: component,
-        excludeFromIndexes: ['total', 'success', 'failed', 'skipped', 'status', 'hasLogs', 'message', 'error'],
+        data: entity,
+        excludeFromIndexes: excludedIndexes,
       });
       await transaction.commit();
     } catch (cause) {
@@ -145,7 +151,7 @@ export class TestComponentModel extends BaseModel {
   /**
    * Lists component tests
    * @param {string} testId The ID of the test
-   * @param {TestComponentQueryOptions?} [opts={}] Query options
+   * @param {TestComponentQueryOptions=} [opts={}] Query options
    * @return {Promise<TestComponentQueryResult>}
    */
   async list(testId, opts={}) {
