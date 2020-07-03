@@ -155,13 +155,9 @@ export class TestLogModel extends BaseModel {
    */
   async get(testId, componentName, logId) {
     const key = this.createTestLogKey(testId, componentName, logId);
-    try {
-      const [existing] = await this.store.get(key);
-      if (existing) {
-        return this.fromDatastore(existing);
-      }
-    } catch (_) {
-      // ...
+    const [existing] = await this.store.get(key);
+    if (existing) {
+      return this.fromDatastore(existing);
     }
     return null;
   }

@@ -252,7 +252,7 @@ class DataHelper {
    */
   generateTestBrowserResult() {
     return {
-      browser: chance.word(),
+      browser: `${chance.word()} ${chance.word()} ${chance.word()}`,
       endTime: chance.timestamp(),
       startTime: chance.timestamp(),
       total: chance.integer({ min: 10 }),
