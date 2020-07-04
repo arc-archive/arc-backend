@@ -74,7 +74,7 @@ export class TestModel extends BaseModel {
    * @param {EditableTestEntity} info Entity description
    * @return {Promise<string>} The key value of the generated identifier for the entity
    */
-  async insertTest(info) {
+  async create(info) {
     const now = Date.now();
     const keyName = uuidv4();
     const key = this.createTestKey(keyName);
@@ -164,17 +164,17 @@ export class TestModel extends BaseModel {
     const key = this.createTestKey(testId);
     try {
       await transaction.run();
-      const [test] = await transaction.get(key);
-      test.status = 'queued';
-      delete test.passed;
-      delete test.failed;
-      delete test.size;
-      delete test.startTime;
-      delete test.error;
-      delete test.message;
+      const [entity] = await transaction.get(key);
+      entity.status = 'queued';
+      delete entity.passed;
+      delete entity.failed;
+      delete entity.size;
+      delete entity.startTime;
+      delete entity.error;
+      delete entity.message;
       transaction.save({
         key,
-        data: test,
+        data: entity,
         excludeFromIndexes: this.excludedIndexes,
       });
       await this._deleteLogs(transaction, key);
@@ -191,21 +191,22 @@ export class TestModel extends BaseModel {
    * @param {string} id The ID of the test.
    * @return {Promise<TestEntity|null>}
    */
-  async getTest(id) {
+  async get(id) {
     const key = this.createTestKey(id);
     const [entity] = await this.store.get(key);
     if (entity) {
-      return this.fromDatastore(entity[0]);
+      return this.fromDatastore(entity);
     }
     return null;
   }
 
   /**
    * Marks test as started
+   *
    * @param {string} id The ID of the test.
    * @return {Promise<void>}
    */
-  async startTest(id) {
+  async start(id) {
     await this.updateTestProperties(id, {
       status: 'running',
       startTime: Date.now(),
@@ -230,10 +231,10 @@ export class TestModel extends BaseModel {
   /**
    * Updates the information about the number of components in the test
    * @param {string} id The ID of the test.
-   * @param {string} size The error message from the test run
+   * @param {number} size The size of the test
    * @return {Promise<void>}
    */
-  async updateTestScope(id, size) {
+  async setScope(id, size) {
     await this.updateTestProperties(id, {
       size,
     });
@@ -241,7 +242,7 @@ export class TestModel extends BaseModel {
 
   /**
    * Marks component as errored
-   * @param {String} id The ID of the test.
+   * @param {string} id The ID of the test.
    * @return {Promise<void>}
    */
   async setComponentError(id) {
@@ -249,17 +250,17 @@ export class TestModel extends BaseModel {
     const key = this.createTestKey(id);
     try {
       await transaction.run();
-      const [test] = await transaction.get(key);
-      if (test.status === 'queued') {
-        test.status = 'running';
+      const [entity] = await transaction.get(key);
+      if (entity.status === 'queued') {
+        entity.status = 'running';
       }
-      if (!test.failed) {
-        test.failed = 0;
+      if (!entity.failed) {
+        entity.failed = 0;
       }
-      test.failed++;
+      entity.failed++;
       transaction.save({
         key,
-        data: test,
+        data: entity,
         excludeFromIndexes: this.excludedIndexes,
       });
       await transaction.commit();
@@ -281,24 +282,24 @@ export class TestModel extends BaseModel {
     try {
       await transaction.run();
       const data = await transaction.get(key);
-      const [test] = data;
-      if (test.status === 'queued') {
-        test.status = 'running';
+      const [entity] = data;
+      if (entity.status === 'queued') {
+        entity.status = 'running';
       }
       if (!report.error) {
-        if (!test.passed) {
-          test.passed = 0;
+        if (!entity.passed) {
+          entity.passed = 0;
         }
-        test.passed++;
+        entity.passed++;
       } else {
-        if (!test.failed) {
-          test.failed = 0;
+        if (!entity.failed) {
+          entity.failed = 0;
         }
-        test.failed++;
+        entity.failed++;
       }
       transaction.save({
         key,
-        data: test,
+        data: entity,
         excludeFromIndexes: this.excludedIndexes,
       });
       await transaction.commit();
@@ -314,7 +315,7 @@ export class TestModel extends BaseModel {
    * @param {string=} message Optional message to add to the result.
    * @return {Promise<void>} [description]
    */
-  async finishTest(id, message) {
+  async finish(id, message) {
     const props = {
       status: 'finished',
       endTime: Date.now(),
@@ -337,13 +338,13 @@ export class TestModel extends BaseModel {
     try {
       await transaction.run();
       const data = await transaction.get(key);
-      const [test] = data;
-      Object.keys(props).forEach((key) => {
-        test[key] = props[key];
+      const [entity] = data;
+      Object.keys(props).forEach((k) => {
+        entity[k] = props[k];
       });
       transaction.save({
         key,
-        data: test,
+        data: entity,
         excludeFromIndexes: this.excludedIndexes,
       });
       await transaction.commit();
@@ -358,7 +359,7 @@ export class TestModel extends BaseModel {
    * @param {string} id The id of the test
    * @return {Promise<void>}
    */
-  async deleteTest(id) {
+  async delete(id) {
     const transaction = this.store.transaction();
     const key = this.createTestKey(id);
     try {

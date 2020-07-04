@@ -50,10 +50,11 @@ declare interface TestInternalEntity {
   message: string;
   endTime: number;
   startTime: number;
-  status: number;
+  status: string;
   failed: number;
   passed: number;
   size: number;
+  created: number;
 }
 
 export declare interface BottpmUpEntity extends EditableBottpmUpEntity, TestInternalEntity, Entity {
@@ -103,7 +104,7 @@ export class TestModel extends BaseModel {
    * @param {EditableTestEntity} info Entity description
    * @return {Promise<string>} The key value of the generated identifier for the entity
    */
-  insertTest(info: EditableTestEntity): Promise<string>;
+  create(info: EditableTestEntity): Promise<string>;
 
   /**
    * Resets test state.
@@ -117,27 +118,27 @@ export class TestModel extends BaseModel {
    * Gets test definition from the store.
    * @param id The ID of the test.
    */
-  getTest(id: string): Promise<TestEntity|null>;
+  get(id: string): Promise<TestEntity|null>;
 
   /**
    * Gets test definition from the store.
    * @param id The ID of the test.
    */
-  startTest(id: string): Promise<void>;
+  start(id: string): Promise<void>;
 
   setTestError(id: string, message: string): Promise<void>;
 
-  updateTestScope(id: string, size: number): Promise<void>;
+  setScope(id: string, size: number): Promise<void>;
 
   setComponentError(id: string): Promise<void>;
 
   updateComponentResult(id: string, report: TestReport): Promise<void>;
 
-  finishTest(id: string, message?: string): Promise<void>;
+  finish(id: string, message?: string): Promise<void>;
 
   updateTestProperties(id: string, props: object): Promise<void>;
 
-  deleteTest(id: string): Promise<void>;
+  delete(id: string): Promise<void>;
 
   /**
    * Deletes components associated with a test

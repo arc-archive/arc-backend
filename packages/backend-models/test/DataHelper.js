@@ -17,9 +17,12 @@ import Chance from 'chance';
 /** @typedef {import('../src/TestReport').TestReport} TestReport */
 /** @typedef {import('../src/TestReport').TestBrowserResult} TestBrowserResult */
 /** @typedef {import('../src/TestComponentModel').TestComponentModel} TestComponentModel */
+/** @typedef {import('../src/TestModel').EditableTestEntity} EditableTestEntity */
+/** @typedef {import('../src/TestModel').TestModel} TestModel */
 
 const chance = new Chance();
 const scopes = ['@advanced-rest-client', '@anypoint-web-components', '@api-components', '@api-modeling'];
+const orgs = ['advanced-rest-client', 'anypoint-web-components', 'api-modeling'];
 
 /**
  * Data processing helper for models
@@ -303,6 +306,50 @@ class DataHelper {
       transaction.upsert(entity);
     });
     await transaction.commit();
+  }
+
+  /**
+   * @return {EditableTestEntity}
+   */
+  generateEditableTestEntity() {
+    return {
+      type: 'amf-build',
+      branch: 'stage',
+      creator: {
+        id: chance.guid(),
+        displayName: chance.name(),
+      },
+      commit: chance.guid(),
+      purpose: chance.sentence(),
+      component: this.generatePackageName(),
+      includeDev: chance.bool(),
+      org: chance.pick(orgs),
+    };
+  }
+
+  /**
+   * @param {TestModel} model
+   * @param {number=} sample
+   * @return {Promise<string[]>}
+   */
+  async populateTests(model, sample=25) {
+    const transaction = model.store.transaction();
+    await transaction.run();
+    const keys = [];
+    Array(sample).fill(0).forEach(() => {
+      const key = model.createTestKey(chance.guid());
+      const info = this.generateEditableTestEntity();
+      // @ts-ignore
+      info.created = Date.now();
+      const entity = {
+        key,
+        data: info,
+      };
+      transaction.save(entity);
+      keys.push(key.name);
+    });
+    await transaction.commit();
+    return keys;
   }
 }
 

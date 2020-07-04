@@ -43,7 +43,7 @@ describe('TestLogModel', () => {
     });
   });
 
-  describe('create()', () => {
+  describe('addLogs()', () => {
     const testId = 'test123';
     let model = /** @type TestLogModel */ (null);
     beforeEach(() => {

@@ -4,6 +4,7 @@ import { CoverageModel, EditableCoverageEntity, CoverageEntity, CoverageResult, 
 import { DependencyEntry, DependencyModel } from '../src/DependencyModel';
 import { TestReport, TestBrowserResult } from '../src/TestReport';
 import { TestComponentModel } from '../src/TestComponentModel';
+import { EditableTestEntity, TestModel } from '../src/TestModel';
 
 export declare interface ComponentInsertOptions {
   name?: string;
@@ -43,7 +44,9 @@ export declare class DataHelper {
   populateDepenenciesEntities(model: DependencyModel, sample?: number):Promise<string[]>;
   generateTestBrowserResult(): TestBrowserResult;
   generateTestReport(results?: number): TestReport;
-  populateComponentTestReports(model: TestComponentModel, testId?: string, sample?: number): Promise<void>
+  populateComponentTestReports(model: TestComponentModel, testId?: string, sample?: number): Promise<void>;
+  generateEditableTestEntity(): EditableTestEntity;
+  populateTests(model: TestModel, sample?: number): Promise<string[]>;
 }
 
 declare const instance: DataHelper;
