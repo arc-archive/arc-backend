@@ -68,15 +68,15 @@ class ComponentsApiRoute extends BaseApi {
       this.sendError(res, tagError);
       return;
     }
-    const { limit, nextPageToken, tags, group } = req.query;
+    const { limit, pageToken, tags, group } = req.query;
     try {
       const opts = {};
       const typedlimit = Number(limit);
       if (!Number.isNaN(typedlimit)) {
         opts.limit = typedlimit;
       }
-      if (nextPageToken) {
-        opts.pageToken = String(nextPageToken);
+      if (pageToken) {
+        opts.pageToken = String(pageToken);
       }
       if (group) {
         opts.group = String(group);
@@ -89,7 +89,7 @@ class ComponentsApiRoute extends BaseApi {
     } catch (cause) {
       logging.error(cause);
       if (cause.code === 3) {
-        this.sendError(res, 'Inavlid nextPageToken parameter');
+        this.sendError(res, 'Inavlid pageToken parameter');
         return;
       }
       this.sendError(res, cause.message, 500);
@@ -168,13 +168,13 @@ class ComponentsApiRoute extends BaseApi {
       this.sendError(res, groupError);
       return;
     }
-    const { limit, nextPageToken, tags, group, component, since, until } = req.query;
+    const { limit, pageToken, tags, group, component, since, until } = req.query;
     const opts = {};
     if (limit) {
       opts.limit = Number(limit);
     }
-    if (nextPageToken) {
-      opts.pageToken = String(nextPageToken);
+    if (pageToken) {
+      opts.pageToken = String(pageToken);
     }
     if (component) {
       opts.component = String(component);
@@ -204,7 +204,7 @@ class ComponentsApiRoute extends BaseApi {
     } catch (cause) {
       logging.error(cause);
       if (cause.code === 3) {
-        this.sendError(res, 'Inavlid nextPageToken parameter');
+        this.sendError(res, 'Inavlid pageToken parameter');
         return;
       }
       this.sendError(res, cause.message, 500);
@@ -232,7 +232,7 @@ class ComponentsApiRoute extends BaseApi {
     } catch (cause) {
       logging.error(cause);
       if (cause.code === 3) {
-        this.sendError(res, 'Inavlid nextPageToken parameter');
+        this.sendError(res, 'Inavlid pageToken parameter');
         return;
       }
       this.sendError(res, cause.message, 500);
@@ -281,7 +281,7 @@ class ComponentsApiRoute extends BaseApi {
     } catch (cause) {
       logging.error(cause);
       if (cause.code === 3) {
-        this.sendError(res, 'Inavlid nextPageToken parameter');
+        this.sendError(res, 'Inavlid pageToken parameter');
         return;
       }
       this.sendError(res, cause.message, 500);

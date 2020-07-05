@@ -1,0 +1,19 @@
+#%RAML 1.0 DataType
+
+displayName: JSON Web Token
+description: |
+  An object representing JWT info object. This information is publically available.
+type: object
+properties:
+  expires:
+    required: false
+    type: number
+    displayName: Expires
+    description: |
+      Timestamp of when the token will expire. This timestamp is server's timestamp.
+  scopes:
+    type: string[]
+    description: |
+      List of authorization scopes associated with the token
+      See `Authentication` document for list of available scopes.
+    example: [create-test, delete-test, create-message, delete-message]

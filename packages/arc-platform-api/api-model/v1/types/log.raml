@@ -1,0 +1,42 @@
+#%RAML 1.0 DataType
+
+displayName: Test execution log
+description: |
+  Each log represents a browser output from test. Depending on component configuration it can have more than one log per test.
+  Logs are created for each browser included into test.
+type: object
+properties:
+  browser:
+    type: string
+    displayName: Browser name
+    description: |
+      Name of the browser executing the test
+    example: chrome
+  version:
+    type: string
+    displayName: Browser version.
+  startTime:
+    displayName: Start timestamp
+    description: A timestamp when the test started.
+  endTime:
+    type: integer
+    displayName: End timestamp
+    description: A timestamp when the test ended. Not available if tests is `running`.
+  message:
+    required: false
+    type: string
+    description: Error message if any.
+  logs:
+    required: false
+    type: array
+    displayName: Execution logs
+    description: Complete lest of execution logs
+    items:
+      type: object
+      properties:
+        path:
+          type: string[]
+          description: Test path
+        state:
+          type: string
+          description: Test result

@@ -1,0 +1,46 @@
+#%RAML 1.0 DataType
+
+displayName: JSON Web Token
+description: |
+  An object representing JWT object. Tokens are used to communicate with the API
+  without having a valid session.
+type: object
+properties:
+  id:
+    type: string
+    description: |
+      Token datastore identifier. To be used when checking validity of the token or
+      when deleting it.
+  expires:
+    required: false
+    type: number
+    displayName: Expires
+    description: |
+      Timestamp of when the token will expire. This timestamp is server's timestamp.
+  expired:
+    type: boolean
+    description: Describes if the token expired.
+  token:
+    type: string
+    displayName: Token value
+    description: |
+      Value of the token should be used in `Authorization: Bearer [token value]` header
+      when communicating with the API.
+  scopes:
+    type: string[]
+    description: |
+      List of authorization scopes associated with the token
+      See `Authentication` document for list of available scopes.
+    example: [create-test, delete-test, create-message, delete-message]
+  issuer:
+    type: object
+    displayName: Issuer
+    description: Person who issued the token.
+    properties:
+      displayName:
+        type: string
+        displayName: Display name
+        description: User full name.
+      id:
+        type: string
+        description: User id.

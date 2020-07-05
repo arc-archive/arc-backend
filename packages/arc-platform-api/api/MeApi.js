@@ -84,10 +84,10 @@ class MeApiRoute extends BaseApi {
         };
         throw o;
       }
-      const { limit, nextPageToken } = req.query;
+      const { limit, pageToken } = req.query;
       const opts = {};
-      if (nextPageToken) {
-        opts.pageToken = String(nextPageToken);
+      if (pageToken) {
+        opts.pageToken = String(pageToken);
       }
       if (limit) {
         opts.limit = Number(limit);

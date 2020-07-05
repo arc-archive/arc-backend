@@ -5,6 +5,7 @@ import { CoverageModel } from '@advanced-rest-client/backend-models';
 
 /** @typedef {import('./BaseApi').SessionRequest} Request */
 /** @typedef {import('express').Response} Response */
+/** @typedef {import('@advanced-rest-client/backend-models').CoverageEntity} CoverageEntity */
 
 const router = express.Router();
 router.use(bodyParser.json());
@@ -42,9 +43,8 @@ class CoverageApi extends BaseApi {
         this.sendError(res, errors, 400);
         return;
       }
-      // @ts-ignore
       const { body, user } = req;
-      const info = {
+      const info = /** @type CoverageEntity */ ({
         component: body.component,
         org: body.org,
         tag: body.tag,
@@ -52,7 +52,7 @@ class CoverageApi extends BaseApi {
           id: user.id,
           displayName: user.displayName || '',
         },
-      };
+      });
       if (body.branch) {
         info.branch = body.branch;
       }

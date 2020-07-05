@@ -1,0 +1,57 @@
+#%RAML 1.0 DataType
+
+displayName: A component
+description: |
+  An object representing a component.
+type: object
+properties:
+  id:
+    type: string
+    displayName: Id
+    description: Version name
+    example: 2.0.0
+  name:
+    type: string
+    displayName: Name
+    description: |
+      Name of the component
+    example: api-summary
+  group:
+    type: string
+    displayName: Group id
+    description: |
+      Datastore group id.
+    example: api-elements
+  created:
+    type: integer
+    displayName: Created
+    required: false
+    description: |
+      Tag creation timestamp.
+
+      Note, this information was not stored in the datastore before 22-01-2019.
+  changelog:
+    type: string
+    displayName: Changelog
+    required: false
+    description: |
+      Auto generated changelog using conventional GitHub releaser.
+      May not be set if the tag did not contain formatted commits.
+
+      Note, this information was not stored in the datastore before 22-01-2019.
+  tags:
+    required: false
+    type: string[]
+    displayName: Component tags
+    description: |
+      A list of tags added to the component. Tags can be used to query for a
+      component.
+
+      Tags can be (but not limited to):
+      - `apic` - The component is used in API console
+      - `arc` - The component is used in Advanced REST Client
+      - `amf` - The component uses AMF data model.
+
+      Note, the `amf` components has its own CI pipeline to test the components
+      agains specific version of AMF library.
+    example: ["apic", "arc", "amf"]

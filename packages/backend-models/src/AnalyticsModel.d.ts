@@ -76,7 +76,7 @@ export class AnalyticsModel extends BaseModel {
    * @returns True if new session has been recorded or false if existing
    * session has been updated.
    */
-  recordSession(applicationId: string, timeZoneOffset: number): Promise<boolean>;
+  recordSession(applicationId: string, timeZoneOffset: number): Promise<ActiveSessionCreateResult>;
 
   /**
    * Ensures that the record in User entity group exists for given application ID.

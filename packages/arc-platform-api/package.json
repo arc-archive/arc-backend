@@ -50,7 +50,7 @@
   "scripts": {
     "start": "node ${SCRIPT:-index.js}",
     "start:api": "node --inspect=9227 api.js --PORT=8080",
-    "test": "mocha test/*.spec.js --require esm --timeout 90000",
+    "test": "mocha test/*.test.js --require esm --timeout 90000",
     "test:watch": "mocha test/*.spec.js --require esm --timeout 90000 --watch",
     "gke:build": "docker build -t gcr.io/advancedrestclient-1155/arc-platform-api:$npm_package_version .",
     "gke:deploy": "docker -- push gcr.io/advancedrestclient-1155/arc-platform-api:$npm_package_version",

@@ -1,0 +1,68 @@
+#%RAML 1.0 DataType
+
+displayName: A test
+description: |
+  An object representing single test.
+type: object
+properties:
+  id:
+    type: string
+    description: Datastore test id.
+  type:
+    type: string
+    description: |
+      Type of the test. To test API components against AMF use `amf-build`.
+      To perform bottom up test for a component (to test if known dependencies of a component
+      passes test when the component change) use `bottom-up`.
+    enum: [amf-build, bottom-up]
+  branch:
+    type: string
+    description: |
+      Source branch of the change initializing the test.
+      For AMF scheduled test it is the branch agains which the test is performed.
+      For bottom-up tests it is branch name of changed component
+    example: develop
+  commit:
+    type: string
+    required: false
+    description: |
+      Commit SHA signature. When set it will use specific commit to build the
+      AMF library (when `type` is "amf-build").
+      For API components bottom-up tests it is the commit signature of the component
+      to test.
+  status:
+    type: string
+    displayName: Build status
+    description: |
+      Build status of the test.
+    enum: [queued, running, finished]
+  passed:
+    required: false
+    type: integer
+    displayName: Passed count
+    description: Number of components that passed the test. This property is not set when test is queued.
+  failed:
+    required: false
+    type: integer
+    displayName: Failed count
+    description: Number of components that failed the test. This property is not set when test is queued.
+  size:
+    required: false
+    type: integer
+    displayName: Components count
+    description: Number of components included into test. This property is not set when test is queued.
+  component:
+    required: false
+    type: string
+    displayName: Component
+    description: |
+      Name of the component that has changed and tests are performed on other components that has this component as a dependency.
+      This property is required when test type is `bottom-up`.
+  startTime:
+    type: integer
+    displayName: Start timestamp
+    description: A timestamp when the test started.
+  endTime:
+    type: integer
+    displayName: End timestamp
+    description: A timestamp when the test ended.

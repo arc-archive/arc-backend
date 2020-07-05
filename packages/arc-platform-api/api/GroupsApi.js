@@ -35,13 +35,13 @@ class GroupsApiRoute extends BaseApi {
       this.sendError(res, errors);
       return;
     }
-    const { limit, nextPageToken } = req.query;
+    const { limit, pageToken } = req.query;
     const opts = {};
     if (limit) {
       opts.limit = Number(limit);
     }
-    if (nextPageToken) {
-      opts.pageToken = String(nextPageToken);
+    if (pageToken) {
+      opts.pageToken = String(pageToken);
     }
     try {
       const result = await this.model.listGroups(opts);
@@ -49,7 +49,7 @@ class GroupsApiRoute extends BaseApi {
     } catch (e) {
       logging.error(e.message);
       if (e.code === 3) {
-        this.sendError(res, 'Inavlid nextPageToken parameter');
+        this.sendError(res, 'Inavlid pageToken parameter');
         return;
       }
       this.sendError(res, e.message, 500);
@@ -89,7 +89,7 @@ class GroupsApiRoute extends BaseApi {
       this.sendError(res, errors);
       return;
     }
-    const { limit, nextPageToken } = req.query;
+    const { limit, pageToken } = req.query;
     const { groupId } = req.params;
     const opts = {
       group: groupId,
@@ -97,8 +97,8 @@ class GroupsApiRoute extends BaseApi {
     if (limit) {
       opts.limit = Number(limit);
     }
-    if (nextPageToken) {
-      opts.pageToken = String(nextPageToken);
+    if (pageToken) {
+      opts.pageToken = String(pageToken);
     }
     try {
       const result = await this.model.listComponents(opts);
@@ -106,7 +106,7 @@ class GroupsApiRoute extends BaseApi {
     } catch (e) {
       logging.error(e.message);
       if (e.code === 3) {
-        this.sendError(res, 'Inavlid nextPageToken parameter');
+        this.sendError(res, 'Inavlid pageToken parameter');
         return;
       }
       this.sendError(res, e.message, 500);
@@ -146,14 +146,14 @@ class GroupsApiRoute extends BaseApi {
       this.sendError(res, errors);
       return;
     }
-    const { limit, nextPageToken } = req.query;
+    const { limit, pageToken } = req.query;
     const { groupId, componentId } = req.params;
     const opts = {};
     if (limit) {
       opts.limit = Number(limit);
     }
-    if (nextPageToken) {
-      opts.pageToken = String(nextPageToken);
+    if (pageToken) {
+      opts.pageToken = String(pageToken);
     }
     try {
       const result = await this.model.listVersions(groupId, componentId, opts);
@@ -161,7 +161,7 @@ class GroupsApiRoute extends BaseApi {
     } catch (e) {
       logging.error(e.message);
       if (e.code === 3) {
-        this.sendError(res, 'Inavlid nextPageToken parameter');
+        this.sendError(res, 'Inavlid pageToken parameter');
         return;
       }
       this.sendError(res, e.message, 500);

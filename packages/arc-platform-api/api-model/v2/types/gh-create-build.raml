@@ -1,0 +1,28 @@
+#%RAML 1.0 DataType
+
+displayName: Create component build
+description: |
+  Model to be used when scheduling a build of a component manually.
+
+  Note, this is a last resort! This API should not be used unless nescesary.
+
+type: object
+properties:
+  sshUrl:
+    type: string
+    required: true
+    description: SSH access to the component
+    example: git@github.com:advanced-rest-client/star-rating.git
+    displayName: SSH
+  component:
+    type: string
+    required: true
+    description: Full name of the component, with origanization name
+    displayName: Component name
+    example: advanced-rest-client/star-rating
+  commit:
+    type: string
+    required: true
+    description: Commit sha checksum
+    displayName: Commit sha
+    example: 6b4855889c6d30cf203beddb6cf8eb42b5257609

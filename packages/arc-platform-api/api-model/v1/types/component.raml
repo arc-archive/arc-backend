@@ -1,0 +1,55 @@
+#%RAML 1.0 DataType
+
+displayName: A component
+description: |
+  An object representing a component.
+type: object
+properties:
+  id:
+    type: string
+    displayName: Id
+    description: Component id
+  name:
+    type: string
+    displayName: Name
+    description: |
+      Name of the component
+  group:
+    type: string
+    displayName: Group name
+    description: |
+      Component group name
+    example: ApiElements
+  groupId:
+    type: string
+    displayName: Group id
+    description: |
+      Datastore group id.
+    example: api-elements
+  version:
+    type: string
+    displayName: Last version
+    description: Last released version of the component
+    example: 2.0.0
+  versions:
+    type: string[]
+    displayName: Available versions
+    description: |
+      A list of all available versions.
+    example: ["2.0.0", "2.0.1", "2.0.2"]
+  tags:
+    required: false
+    type: string[]
+    displayName: Component tags
+    description: |
+      A list of tags added to the component. Tags can be used to query for a
+      component.
+
+      Tags can be (but not limited to):
+      - `apic` - The component is used in API console
+      - `arc` - The component is used in Advanced REST Client
+      - `amf` - The component uses AMF data model.
+
+      Note, the `amf` components has its own CI pipeline to test the components
+      agains specific version of AMF library.
+    example: ["apic", "arc", "amf"]

@@ -1,0 +1,25 @@
+#%RAML 1.0 DataType
+
+displayName: JSON Web Token Create
+description: |
+  An object representing JWT object properties when creating the token.
+type: object
+properties:
+  expiresIn:
+    required: false
+    type: number
+    displayName: Expires
+    description: |
+      Define when the token expires. It can be a number which will be processed as a number
+      of seconds until the expiration date. It can also be a string representing
+      amount of time until expiration and time unit, e.g. `1d` (one day), `2y` (two yers)
+      `1M` (one month), `15m` (fifteen minutes) and so on.
+
+      If omitted the token won't expire until is manually revoked. To revoke the token
+      use /me/tokens/{tokenId} DELETE method.
+  scopes:
+    type: string[]
+    description: |
+      List of scopes to be used with this token.
+      See `Authorization` document for list of available scopes.
+    example: [create-test, delete-test, create-message, delete-message]

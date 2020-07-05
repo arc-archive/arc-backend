@@ -294,16 +294,12 @@ class AnalyticsRoute extends BaseApi {
     }
     const timeZoneOffset = Number(tz);
     if (Number.isNaN(timeZoneOffset)) {
-      this.sendError(res,
-          `timeZoneOffset is invalid: ${tz}. Expecting integer.`, 400);
+      this.sendError(res, `timeZoneOffset is invalid: ${tz}. Expecting integer.`, 400);
       return;
     }
     try {
       const result = await this.model.recordSession(anonymousId, timeZoneOffset);
-      // if (result instanceof Error) {
-      //   throw result;
-      // }
-      if (result) {
+      if (result.newSession) {
         res.status(204).end();
       } else {
         res.status(205).end();

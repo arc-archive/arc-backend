@@ -1,0 +1,60 @@
+#%RAML 1.0 DataType
+
+displayName: Message
+description: |
+  ARC info message model
+type: !include create-message.raml
+
+properties:
+  id:
+    type: string
+    displayName: Id
+    description: |
+      Datastore key.
+  kind:
+    type: string
+    displayName: Kind
+    description: |
+      Object structure identifier.
+      Always set to `ArcInfo#Message`.
+  time:
+    type: integer
+    displayName: Time
+    description: |
+      Timestamp of creation time.
+  abstract:
+    type: string
+    displayName: Abstract
+    description: |
+      The message to render in the application.
+  title:
+    type: string
+    displayName: Title
+    description: |
+      The title of the message.
+  actionUrl:
+    type: string
+    displayName: Action URL
+    required: false
+    description: |
+      The URL to the rest of the message. This is rendered with the message as
+      the primary action.
+  cta:
+    type: string
+    displayName: Call to action
+    required: false
+    description: |
+      A label to be rendered with the action URL.
+  target:
+    type: string
+    displayName: Target platform
+    required: false
+    description: |
+      Message target platform. Currently it is `chrome` and `electron` but may change in the future.
+  channel:
+    type: string
+    displayName: Release channel
+    required: false
+    enum: [alpha, beta, stable]
+    description: |
+      Application release channel. When specified the message is targeted to a specific channel.

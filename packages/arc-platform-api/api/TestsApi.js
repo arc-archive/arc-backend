@@ -129,10 +129,10 @@ class TestApiRoute extends BaseApi {
       this.sendError(res, errors);
       return;
     }
-    const { limit, nextPageToken } = req.query;
+    const { limit, pageToken } = req.query;
     const opts = {};
-    if (nextPageToken) {
-      opts.pageToken = String(nextPageToken);
+    if (pageToken) {
+      opts.pageToken = String(pageToken);
     }
     if (limit) {
       opts.limit = Number(limit);
@@ -143,7 +143,7 @@ class TestApiRoute extends BaseApi {
     } catch (cause) {
       logging.error(cause);
       if (cause.code === 3) {
-        this.sendError(res, 'Inavlid nextPageToken parameter');
+        this.sendError(res, 'Inavlid pageToken parameter');
         return;
       }
       this.sendError(res, cause.message, 500);
@@ -228,10 +228,10 @@ class TestApiRoute extends BaseApi {
       return;
     }
     const { testId } = req.params;
-    const { limit, nextPageToken } = req.query;
+    const { limit, pageToken } = req.query;
     const opts = {};
-    if (nextPageToken) {
-      opts.pageToken = String(nextPageToken);
+    if (pageToken) {
+      opts.pageToken = String(pageToken);
     }
     if (limit) {
       opts.limit = Number(limit);
@@ -242,7 +242,7 @@ class TestApiRoute extends BaseApi {
     } catch (cause) {
       logging.error(cause);
       if (cause.code === 3) {
-        this.sendError(res, 'Inavlid nextPageToken parameter');
+        this.sendError(res, 'Inavlid pageToken parameter');
         return;
       }
       this.sendError(res, cause.message, 500);
@@ -281,10 +281,10 @@ class TestApiRoute extends BaseApi {
       return;
     }
     const { testId, componentName } = req.params;
-    const { limit, nextPageToken } = req.query;
+    const { limit, pageToken } = req.query;
     const opts = {};
-    if (nextPageToken) {
-      opts.pageToken = String(nextPageToken);
+    if (pageToken) {
+      opts.pageToken = String(pageToken);
     }
     if (limit) {
       opts.limit = Number(limit);
@@ -296,7 +296,7 @@ class TestApiRoute extends BaseApi {
     } catch (cause) {
       logging.error(cause);
       if (cause.code === 3) {
-        this.sendError(res, 'Inavlid nextPageToken parameter');
+        this.sendError(res, 'Inavlid pageToken parameter');
         return;
       }
       this.sendError(res, cause.message, 500);

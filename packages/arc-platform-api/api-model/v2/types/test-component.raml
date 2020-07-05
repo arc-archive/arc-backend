@@ -1,0 +1,47 @@
+#%RAML 1.0 DataType
+
+displayName: Tested component
+description: |
+  An object representing single component in a test.
+type: object
+properties:
+  component:
+    type: string
+    description: |
+      Name of tested component.
+    example: api-annotation-document
+  status:
+    type: string
+    enum: [running, passed, failed]
+  startTime:
+    type: integer
+    displayName: Start timestamp
+    description: A timestamp when the test started.
+  endTime:
+    required: false
+    type: integer
+    displayName: End timestamp
+    description: A timestamp when the test ended. Not available if tests is `running`.
+  retries:
+    required: false
+    type: integer
+    description: Number of test retries, if any. Not available if tests is `running`.
+  passed:
+    required: false
+    type: integer
+    displayName: Passed tests
+    description: A number of passed tests Not available if tests is `running`.
+  failed:
+    required: false
+    type: integer
+    displayName: Failed tests
+    description: A number of failed tests. Not available if tests is `running`.
+  hasLogs:
+    required: false
+    type: boolean
+    displayName: Has logs
+    description: When `true` then execurion logs are available. Use `/logs` endpoint to preview the logs.
+  message:
+    required: false
+    displayName: Error message
+    description: Error meesage describing the nature of the failure.

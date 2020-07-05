@@ -1,0 +1,59 @@
+#%RAML 1.0 SecurityScheme
+
+description: |
+  Custom authentication scheme to perform some operation in the API that normally
+  are available for the web app via session but for CI services to create
+  tests from the CI pipeline without having a session set on the server.
+
+  It uses JWT standard to generate and process tokens. See more in `Authorization`
+  documentation.
+type: x-custom
+displayName: JSON Web Token
+describedBy:
+  headers:
+    Authorization:
+      type: string
+      example: Bearer ya.2453vfDb3cJHisdf.&H
+      description: Used to send a valid Bearer token.
+  responses:
+    401:
+      description: |
+        Not authorized. The token is missing in the request, may have been revoked, expired
+        or token scope is not sufficient.
+        Use different token or create new token in application web UI.
+        This response won't include token integrity errors. See `400` response
+        for more details.
+      body:
+        application/json:
+          type: object
+          properties:
+            error:
+              type: boolean
+              description: Always true. Indicates that the response is errord.
+            expired:
+              required: false
+              type: boolean
+              description: |
+                If set it means the token expired. New token is required.
+            message:
+              type: string
+              description: Human readable message describing the error.
+    400:
+      description: |
+        Provided token is invalid. The server was unable to process token value
+        and authorization wasn't possible.
+      body:
+        application/json:
+          type: object
+          properties:
+            error:
+              type: boolean
+              description: Always true. Indicates that the response is errord.
+            expired:
+              required: false
+              type: boolean
+              description: |
+                If set it means the token expired. New token is required.
+            message:
+              type: string
+              description: Human readable message describing the error.

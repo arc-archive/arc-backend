@@ -185,7 +185,7 @@ export class BaseApi {
       items: result[0],
     };
     if (result[1]) {
-      data.nextPageToken = result[1];
+      data.pageToken = result[1];
     }
     res.send(data);
   }
@@ -200,7 +200,7 @@ export class BaseApi {
       items: data.entities,
     };
     if (data.pageToken) {
-      result.nextPageToken = data.pageToken;
+      result.pageToken = data.pageToken;
     }
     res.send(result);
   }

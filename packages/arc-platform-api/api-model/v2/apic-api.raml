@@ -1,0 +1,742 @@
+#%RAML 1.0
+title: API Components REST API
+version: v2
+baseUri: https://api.advancedrestclient.com/{version}
+mediaType: [application/json]
+description: |
+  REST API for Advanced REST Client platform that includes API Components CI pipeline and ARC backend.
+
+  For suggestions about this API, please, email arc@mulesoft.com.
+traits:
+  Paginated: !include traits/paginated.raml
+
+documentation:
+  - title: Authorization
+    content: !include documentation/authorization.md
+  - title: Change log
+    content: !include documentation/changelog.md
+
+types:
+  Test: !include types/test.raml
+  TestCreate: !include types/create-test.raml
+  TestComponent: !include types/test-component.raml
+  Log: !include types/log.raml
+  User: !include types/user.raml
+  JWT: !include types/jwt-token.raml
+  JWTcreate: !include types/jwt-token-create.raml
+  JWTinfo: !include types/jwt-token-info.raml
+  Group: !include types/group.raml
+  Component: !include types/component.raml
+  Version: !include types/version.raml
+  CreateMessage: !include types/create-message.raml
+  Message: !include types/message.raml
+  GhCreateBuild: !include types/gh-create-build.raml
+  GhCreateBuildTag: !include types/gh-create-build-tag.raml
+  AnalyticsRecord: !include types/AnalyticsRecord.raml
+  ErrorResource:
+    description: A response that is errored
+    type: object
+    properties:
+      error:
+        type: boolean
+        required: true
+        example: true
+        default: true
+        description: Indicate that the response is errored.
+      message:
+        type: string
+        description: The error message associated with the error.
+        required: true
+securitySchemes:
+  JwtSecurity: !include security/x-api-token.raml
+
+
+/app:
+  /messages:
+    displayName: ARC messages
+    description: |
+      An endpoint to list application meessages. Messages are rendered in ARC
+      in a side panel. The app queries for messages when starting up and
+      renders an icon to open messages center.
+
+      It is possible to query for messages by time, channel, and platform.
+    get:
+      displayName: List messages
+      description: |
+        Lists available messages.
+      is: [Paginated: {resourceType: Message}]
+      queryParameters:
+        since:
+          type: integer
+          required: false
+          displayName: Since
+          description: |
+            A timestamp of a start date when querying for the messages.
+            It is to be used to limit number of records returned by the API
+            when the application already have messages received in the past.
+        until:
+          type: integer
+          required: false
+          displayName: Until
+          description: |
+            A timestamp of a end date when querying for the messages.
+            Dates in the future causes error.
+        target:
+          type: string
+          examples:
+            Chrome app: chrome
+            Electron app: electron
+            Web client: web
+          displayName: Target
+          description: |
+            Name of the platform used to render the messages.
+        channel:
+          type: string
+          required: false
+          displayName: Channel
+          enum: [stable, beta, alpha]
+          description: |
+            Name of the release channel.
+      responses:
+        400:
+          description: |
+            This response is expected when `since` and `until` parameters doesn't
+            make sense (since higher then until) or if any date is in the future.
+    post:
+      displayName: Create message
+      securedBy: [JwtSecurity]
+      description: |
+        Creates a message to be sent to the application.
+
+        This operation requires the `create-message` scope to be set on the token, if used.
+      body:
+        type: CreateMessage
+      responses:
+        200:
+          description: Message has been created
+          body:
+            type: Message
+        400:
+          description: Returned when request verification failed.
+          body:
+            displayName: Request validation failed
+            type: ErrorResource
+    /{messageId}:
+      uriParameters:
+        messageId:
+          type: string
+          displayName: Id
+          description: |
+            The datastore key of the message.
+            It is returned by the list query endpoint.
+      delete:
+        securedBy: [JwtSecurity]
+        displayName: Delete message
+        description: |
+          Removes message from the data store.
+
+          This operation requires the `delete-message` scope to be set on the token, if used.
+        responses:
+          204:
+            description: Status returned when the message has been deleted.
+          404:
+            description: The message cannot be found
+            body:
+              displayName: Message not found
+              type: ErrorResource
+  /messages:
+    /record:
+      post:
+        description: |
+          Recods a new session in the analytics store.
+        body:
+          application/json:
+            type: AnalyticsRecord
+        responses:
+          204:
+            description: |
+              This response is created when a new session was registered.
+          205:
+            description: |
+              This response is created when an existing session was updated.
+    /query:
+      /{type}/{scope}:
+        uriParameters:
+          type:
+            type: string
+            enum: ['daily', 'weekly', 'monthly']
+            description: |
+              A query data type.
+          scope:
+            type:
+              type: string
+              enum: ['users', 'sessions']
+              description: |
+                Data scope.
+        get:
+          description: |
+            Queries for the usage data.
+
+/ci:
+  /tests:
+    displayName: Tests
+    get:
+      is: [Paginated: {resourceType: Test}]
+      displayName: List tests
+      description: |
+        Lists all available tests. By default it returns first 25 tests.
+        Use `limit` and `pageToken` parameters to enable pagination.
+    post:
+      displayName: Schedule a test
+      securedBy: [JwtSecurity]
+      description: |
+        This method creates a test and schedules worker noed to execute the test.
+
+        Note, this endpoint requires Google authentication. Currently you can
+        interact with this method using web app only.
+      body:
+        type: TestCreate
+      responses:
+        200:
+           body:
+             type: object
+             properties:
+               error:
+                 required: false
+                 type: boolean
+                 description: Error message if any.
+               id:
+                 required: false
+                 type: string
+                 description: An ID of scheduled test. Not set when error.
+    /{testId}:
+      uriParameters:
+        testId:
+          displayName: Test id
+      get:
+        displayName: Get a test
+        description: Returns a test.
+        responses:
+          200:
+            body:
+              type: Test
+          404:
+            body:
+              displayName: Test not found
+              type: ErrorResource
+      delete:
+        securedBy: [JwtSecurity]
+        displayName: Remove test
+        description: |
+          Removes the test.
+          Note, currently the test can only be deleted when its status is `queued`.
+
+          Note, this endpoint requires Google authentication. Currently you can
+          interact with this method using web app only.
+        responses:
+          204:
+            description: Status returned when the test has been deleted.
+          400:
+            description: Returned when `status` of the test is not `queued`.
+            body:
+              displayName: Test cannot be deleted at this time.
+              type: ErrorResource
+          404:
+            description: The test cannot be found
+            body:
+              displayName: Test not found
+              type: ErrorResource
+      /restart:
+        securedBy: [JwtSecurity]
+        put:
+          displayName: Restart test
+          description: |
+            Removes all test execution logs and restarts the test.
+          responses:
+            204:
+              description: |
+                The test has ben reset and scheduled.
+                Be aware of other response codes (400, 401, or 404).
+      /components:
+        get:
+          is: [Paginated: {resourceType: TestComponent}]
+          displayName: List tested components
+          description: |
+            Lists componets processed in a test.
+        /{componentName}:
+          uriParameters:
+            componentName:
+              type: string
+              description: Component name
+              example: api-annotation-document
+          get:
+            displayName: Get a component
+            description: Returns component information.
+            responses:
+              200:
+                body:
+                  type: TestComponent
+              404:
+                body:
+                  displayName: Component not found
+                  type: ErrorResource
+          /logs:
+            get:
+              displayName: List logs
+              is: [Paginated: {resourceType: Log}]
+              description: |
+                Returns browsers execution logs for the test
+            /{logId}:
+              uriParameters:
+                logId:
+                  type: string
+                  displayName: Log id
+                  description: ID of the log
+              get:
+                displayName: Get test execution log
+                responses:
+                  200:
+                    body:
+                      type: Log
+                  404:
+                    body:
+                      displayName: Log not found
+                      type: ErrorResource
+  /me:
+    displayName: User
+    get:
+      displayName: Get current user
+      description: |
+        Returns an information about current user.
+        The information may come from current session on the web server or
+        it can be encoded in JWT.
+      responses:
+        200:
+          body:
+            type: User
+    /tokens:
+      securedBy: [JwtSecurity]
+      displayName: JSON tokens
+      get:
+        is: [Paginated: {resourceType: JWT}]
+        displayName: List tokens
+        description: |
+          Lists created by the user authorization tokens,
+      post:
+        displayName: Create a token
+        description: Creates a new authorization token.
+        body:
+          type: JWTcreate
+        responses:
+          200:
+            description: Token has been created
+            body:
+              type: JWT
+          400:
+            description: Returned when request verification failed.
+            body:
+              displayName: Request validation failed
+              type: ErrorResource
+      /{tokenId}:
+        uriParameters:
+          tokenId:
+            type: string
+            displayName: Token datastore id
+            description: Received from create / list operation token id.
+        get:
+          displayName: Get a token
+          responses:
+            200:
+              body:
+                type: JWT
+            404:
+              body:
+                displayName: Token not found
+                type: ErrorResource
+        delete:
+          displayName: Delete token
+          description: |
+            Used to delete a token. Revoke token method should be used to revoke
+            the token but to keep record of it.
+          responses:
+            204:
+              description: The token has been deleted.
+            401:
+              description: The token belongs to other person
+              body:
+                displayName: Token not found
+                type: ErrorResource
+            404:
+              body:
+                displayName: Token not found
+                type: ErrorResource
+        /revoke:
+          post:
+            displayName: Revoke token
+            description: |
+              This method does not require body on the request nor resturns any body.
+              Use this endpoint to revoke the token. Every request with the token after
+              it is revoked will result with 401 status code.
+            responses:
+              204:
+                description: The token has been revoked.
+              401:
+                description: The token belongs to other person
+                body:
+                  displayName: Token not found
+                  type: ErrorResource
+              404:
+                body:
+                  displayName: Token not found
+                  type: ErrorResource
+  /tokeninfo:
+    get:
+      displayName: Token info
+      description: |
+        Allows to gen basic information about the token without being authorized.
+        It only returns basic information about the token without user information.
+      queryParameters:
+        token:
+          type: string
+          description: The token to test.
+      responses:
+        200:
+          description: The token has been processed.
+          body:
+            type: JWTinfo
+        400:
+          description: Token processing error response.
+          body:
+            displayName: Token is invalid.
+            type: ErrorResource
+  /github:
+    description: |
+      This routes are reserved for GitHub web hooks.
+    /status:
+      post:
+        description: |
+          Called when commit status changed.
+          The body is described in GitHub docs.
+
+          This endpoints is not to be used by anyone except for GitHub. It uses signature verification
+          to pass the request.
+    /manual/stage:
+      securedBy: [JwtSecurity]
+      post:
+        description: |
+          Schedules stage branch build manually.
+
+          Note, this is a last resort! This API should not be used unless nescesary.
+          It may be uses in cases when the CI stuck for some reason unrelated to component
+          build process. **It cannot be used to force component release.**
+
+          This endpoint requires `schedule-component-build` scope on generated token.
+        body:
+          type: GhCreateBuild
+        responses:
+          201:
+            description: The build scheduled successfully.
+    /manual/master:
+      securedBy: [JwtSecurity]
+      post:
+        description: |
+          Schedules master branch build manually.
+
+          Note, this is a last resort! This API should not be used unless nescesary.
+          It may be uses in cases when the CI stuck for some reason unrelated to component
+          build process. **It cannot be used to force component release.**
+
+          This endpoint requires `schedule-component-build` scope on generated token.
+        body:
+          type: GhCreateBuild
+        responses:
+          201:
+            description: The build scheduled successfully.
+    /manual/tag:
+      securedBy: [JwtSecurity]
+      post:
+        description: |
+          Schedules master branch build manually.
+
+          Note, this is a last resort! This API should not be used unless nescesary.
+          It may be uses in cases when the CI stuck for some reason unrelated to component
+          build process. **It cannot be used to force component release.**
+
+          This endpoint requires `schedule-component-build` scope on generated token.
+        body:
+          type: GhCreateBuildTag
+        responses:
+          201:
+            description: The build scheduled successfully.
+  /groups:
+    description: Components listing database
+    get:
+      is: [Paginated: {resourceType: Group}]
+      displayName: List groups
+      description: |
+        Lists component groups. Each component belongs to a signle group.
+        You will need group name later to get component info.
+
+        If you would like to query for component data, use `/components` route
+    /{groupId}:
+      uriParameters:
+        groupId:
+          type: string
+          displayName: Group id
+          description: |
+            Datastore group id. It is a normalized name of the group so a groups like `API Components` or `ApiComponents` all become `api-components`.
+            The datastore parses passed value to the later form so it is possible to pass component name instead.
+      get:
+        displayName: Get group.
+        description: |
+          Returns definition of the group.
+        responses:
+          200:
+            body:
+              type: Group
+          404:
+            body:
+              displayName: Group not found
+              type: ErrorResource
+      /components:
+        get:
+          is: [Paginated: {resourceType: Component}]
+          displayName: List components
+        /{componentId}:
+          uriParameters:
+            componentId:
+              type: string
+              displayName: Component id
+              description: |
+                Datastore component id. It is a normalized name of the component.
+          get:
+            displayName: Get group.
+            description: |
+              Returns definition of the component.
+            responses:
+              200:
+                body:
+                  type: Component
+              404:
+                body:
+                  displayName: Component not found
+                  type: ErrorResource
+          /versions:
+            get:
+              is: [Paginated: {resourceType: Version}]
+              displayName: List versions
+            /{versionId}:
+              uriParameters:
+                versionId:
+                  type: string
+                  displayName: Version id
+                  description: |
+                    Datastore version id.
+              get:
+                displayName: Get group.
+                description: |
+                  Returns definition of the version.
+                responses:
+                  200:
+                    body:
+                      type: Version
+                  404:
+                    body:
+                      displayName: Component not found
+                      type: ErrorResource
+  /components:
+  get:
+    displayName: Query components
+    is: [Paginated: {resourceType: Component}]
+    description: |
+      This method allows to query for components without building key path (group > component > version).
+      The method allows to query for component by `tags` and `group`.
+
+      When querying by tags the combination of many tags gives a list of results where the component has
+      all tags defined in query parameters.
+
+      ### Example
+
+      ```
+      GET /api/components?tags=apic&tags=arc HTTP/1.1
+      host: ci.advancedrestclient.com:443
+
+
+      ```
+    queryParameters:
+      tags:
+        required: false
+        type: string[]
+        displayName: Tags
+        description: |
+          A list of tags added to limit the query to.
+
+          Tags can be (but not limited to):
+          - `apic` - The component is used in API console
+          - `arc` - The component is used in Advanced REST Client
+          - `amf` - The component uses AMF data model.
+        example: ["apic", "arc", "amf"]
+      group:
+        required: false
+        type: string
+        displayName: Group id
+        description: |
+          When set it only queries for a component from a specific components group.
+          Use this property to reduce query time and resources usage.
+        example: api-elements
+  /versions:
+    get:
+      displayName: Query versions
+      is: [Paginated: {resourceType: Version}]
+      queryParameters:
+        tags:
+          required: false
+          type: string[]
+          displayName: Tags
+          description: |
+            A list of tags added to limit the query to.
+
+            Tags can be (but not limited to):
+            - `apic` - The component is used in API console
+            - `arc` - The component is used in Advanced REST Client
+            - `amf` - The component uses AMF data model.
+
+            **Note:** Tags are a copy of component tags at the time of tag creation. The tags are not updated when component's tags change.
+
+            **Note:** this information was not stored in the datastore before 22-01-2019.
+          example: ["apic", "arc", "amf"]
+        group:
+          required: false
+          type: string
+          displayName: Group id
+          description: |
+            When set it only queries for a version from a specific component.
+            Use this property to reduce query time and resources usage.
+
+            Note, this parameter **is required** when `component` parameter is set.
+          example: api-elements
+        component:
+          required: false
+          type: string
+          displayName: Component id
+          description: |
+            When set it only queries for a version from a specific component.
+            Use this property to reduce query time and resources usage.
+
+            Note, this parameter **is required** when `group` parameter is set.
+        since:
+          type: integer
+          required: false
+          displayName: Since
+          description: |
+            Limit the query to a time starting at `since` parameter. It is
+            a start timestamp of the query.
+        until:
+          type: integer
+          required: false
+          displayName: Until
+          description: |
+            Limit the query to a time ending at `until` parameter. It is
+            an end timestamp of the query.
+        skip-docs:
+          type: boolean
+          displayName: Skip docs
+          default: false
+          description: |
+            Allows to filter out "docs" property from the version when querying for the list.
+            The `docs` property contains AST model for the component which may contain a lot of data. If this information won't be used it can be filtered out to reduce transfer size.
+  /{componentId}:
+    uriParameters:
+      componentId:
+        type: string
+        description: Component id / normalized name
+        displayName: Component
+        example: api-summary
+    /dependees:
+      get:
+        displayName: List dependees
+        description: |
+          Lists components that depends on the `componentId` component.
+        queryParameters:
+          devDependencies:
+            type: boolean
+            displayName: Include dev relation
+            description: |
+              When set it also looks for parent component that has this component in dev dependencies.
+        responses:
+          200:
+            body:
+              type: object
+              properties:
+                items:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        displayName: Dependee id.
+                        description: |
+                          Name of the dependee component.
+                      development:
+                        type: boolean
+                        required: false
+                        description: |
+                          When set the dependee has this component as a dev dependency
+                      production:
+                        type: boolean
+                        required: false
+                        description: |
+                          When set the dependee has this component as a dependency
+              example:
+                items:
+                  - id: api-summary
+                    production: true
+                  - id: cookie-manager
+                    development: true
+    /dependencies:
+      get:
+        displayName: List dependencies
+        description: |
+          Lists components dependencies graph.
+        responses:
+          200:
+            body:
+              type: object
+              properties:
+                items:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        displayName: This component id.
+                      dependencies:
+                        type: string[]
+                        description: |
+                          List of production depndencies (only API components)
+                      devDependencies:
+                        type: string[]
+                        description: |
+                          List of development depndencies (only API components)
+              example:
+                items:
+                  - id: cookie-manager
+                    depenednecies:
+                      - arc-icons
+                      - tutorial-toast
+                      - bottom-sheet
+                      - cookies-list-items
+                      - cookie-editor
+                      - cookie-details
+                    devDependencies:
+                      - arc-electron-default-theme
+                      - arc-data-generator
+          404:
+            description: |
+              Depdenecy graph has not yet been created.
+              This means that the component has not yet been process by this CI pipeline and therefore dependecies cannot be
+              resolved. Depdeencies are processed when new tag is being released.
+            body:
+              type: ErrorResource

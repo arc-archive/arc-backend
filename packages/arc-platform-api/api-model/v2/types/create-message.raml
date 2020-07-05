@@ -1,0 +1,53 @@
+#%RAML 1.0 DataType
+
+displayName: Create message
+description: |
+  A model to be used when creating a message
+properties:
+  abstract:
+    type: string
+    displayName: Abstract
+    description: |
+      The message to render in the application. It should be short version of general message.
+    example: "New cool features comming to the application. Download beta release channel and give use early feedback."
+  title:
+    type: string
+    displayName: Title
+    description: |
+      Message title. Should be as short as possible.
+    example: "New beta release"
+  actionUrl:
+    type: string
+    displayName: Action url
+    required: false
+    description: |
+      An URL to full message content (blog post, website, etc).
+      When set the `cta` property is required. If both not set the action
+      button/link won't be rendered.
+  cta:
+    type: string
+    displayName: Call to action
+    required: false
+    description: |
+      A label to render in the button/link associated with the message.
+      This is required when `actionUrl` is set.
+    example: "Learn more"
+  target:
+    type: string[]
+    displayName: Targets
+    required: false
+    example: ["chrome", "electron"]
+    description: |
+      A list of targeted platforms. It is indexed property used to query for the data.
+  channel:
+    type: string
+    required: false
+    example: "stable"
+    displayName: Channel
+    description: |
+      Name of the release channel associated with the message.
+      It should not be set if the channel is "stable".
+
+      Note, when querying for messages using `channel` property, if you set "stable"
+      value it will result with messages that has `stable` as a value, and not
+      empty value.

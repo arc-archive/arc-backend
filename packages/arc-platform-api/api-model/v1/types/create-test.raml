@@ -1,0 +1,37 @@
+#%RAML 1.0 DataType
+
+displayName: Test creation model
+description: |
+  Model to be used when scheduling a test to be executed.
+
+type: object
+
+properties:
+  type:
+    type: string
+    description: |
+      Type of the test. To test API components against AMF use `amf-build`.
+      To perform bottom up test for a component (to test if known dependencies of a component
+      passes test when the component change) use `bottom-up`.
+    enum: [amf-build, bottom-up]
+  branch:
+    type: string
+    description: |
+      Source branch of the change initializing the test.
+      For AMF scheduled test it is the branch agains which the test is performed.
+      For bottom-up tests it is branch name of changed component
+    example: develop
+  commit:
+    type: string
+    required: false
+    description: |
+      Commit SHA signature. When set it will use specific commit to build the
+      AMF library (when `test-type` is "amf-build").
+      For API components bottom-up tests it is the commit signature of the component
+      to test.
+  component:
+    type: string
+    required: false
+    description: |
+      To be set only when `test-type` is "bottom-up". Name of the component to
+      analyze for dependencies integrity.

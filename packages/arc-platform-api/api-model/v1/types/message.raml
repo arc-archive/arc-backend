@@ -1,0 +1,23 @@
+#%RAML 1.0 DataType
+
+displayName: Message
+description: |
+  ARC info message model
+type: !include create-message.raml
+
+properties:
+  id:
+    type: string
+    displayName: Id
+    description: |
+      Datastore key.
+  kind:
+    type: string
+    displayName: Kind
+    description: |
+      Object structure identifier.
+  time:
+    type: integer
+    displayName: Time
+    description: |
+      Timestamp of creation time.

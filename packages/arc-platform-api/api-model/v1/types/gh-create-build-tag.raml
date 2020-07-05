@@ -1,0 +1,16 @@
+#%RAML 1.0 DataType
+
+displayName: Create component build for tag release
+description: |
+  Model to be used when scheduling a build of a component manually.
+
+  Note, this is a last resort! This API should not be used unless nescesary.
+
+type: !include gh-create-build.raml
+properties:
+  branch:
+    type: string
+    required: false
+    description: Name of the tag associated with the build.
+    example: 1.0.1
+    displayName: Tag name

@@ -1,0 +1,26 @@
+#%RAML 1.0 DataType
+
+displayName: Analytics Record
+description: |
+  A resource used to create a session record in the data store.
+type: object
+properties:
+  tz:
+    type: number
+    displayName: Time zone offset
+    description: |
+      Application region timezone offset to GMT.
+  aid:
+    type: string
+    displayName: Anonymous ID
+    description: |
+      Anonymized application identifier. This identifier must only be used
+      for analytics. It must not be used to identify anything else.
+
+      ARC generates a pair of application ID and anonymous ID. One is to be used as
+      a used identifier (for future use) that is stored in the application and should be
+      used to store / restore used data in the ARC backend.
+
+      The anonymous ID is used only for reporting and cannot be traced back to the user.
+      Generation of the anonymous ID is a one-way hasing alghorithm from the application id.
+      This way it stays consistent accross installations but cannot be traced back to the user.

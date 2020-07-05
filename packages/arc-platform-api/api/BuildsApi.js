@@ -34,7 +34,7 @@ class BuildsApiRoute extends BaseApi {
       this.sendError(res, errors);
       return;
     }
-    const { limit, nextPageToken } = req.query;
+    const { limit, pageToken } = req.query;
     let typedLimit;
     if (limit) {
       typedLimit = Number(limit);
@@ -43,8 +43,8 @@ class BuildsApiRoute extends BaseApi {
       }
     }
     let typedToken;
-    if (nextPageToken) {
-      typedToken = String(nextPageToken);
+    if (pageToken) {
+      typedToken = String(pageToken);
     }
     try {
       const result = await this.model.list({
@@ -55,7 +55,7 @@ class BuildsApiRoute extends BaseApi {
     } catch (cause) {
       logging.error(cause);
       if (cause.code === 3) {
-        this.sendError(res, 'Inavlid nextPageToken parameter');
+        this.sendError(res, 'Inavlid pageToken parameter');
         return;
       }
       this.sendError(res, cause.message, 500);

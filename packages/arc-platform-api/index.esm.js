@@ -77,6 +77,7 @@ app.use((req, res) => {
   res.status(404).send('Not Found');
 });
 const server = app.listen(config.get('PORT'), () => {
-  const port = server.address().port;
+  // @ts-ignore
+  const { port } = server.address();
   logging.info(`App listening on port ${port}`);
 });

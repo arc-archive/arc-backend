@@ -36,8 +36,8 @@ class MessagesApiRoute extends BaseApi {
     } else {
       messages = [];
     }
-    let { nextPageToken, since, until } = req.query;
-    if (!nextPageToken) {
+    let { pageToken, since, until } = req.query;
+    if (!pageToken) {
       const typedUntil = Number(until);
       const typedSince = Number(since);
       if (until) {
@@ -73,9 +73,9 @@ class MessagesApiRoute extends BaseApi {
    */
   collectQueryParameters(req) {
     const result = {};
-    const { nextPageToken, since, until, target, channel, limit } = req.query;
-    if (nextPageToken) {
-      result.pageToken = String(nextPageToken);
+    const { pageToken, since, until, target, channel, limit } = req.query;
+    if (pageToken) {
+      result.pageToken = String(pageToken);
     } else {
       if (since) {
         result.since = Number(since);
@@ -163,7 +163,7 @@ class MessagesApiRoute extends BaseApi {
       this.sendQueryResult(result, res);
     } catch (e) {
       if (e.code === 3) {
-        this.sendError(res, 'Inavlid nextPageToken parameter');
+        this.sendError(res, 'Inavlid pageToken parameter');
         return;
       }
       this.sendError(res, e.message, 500);

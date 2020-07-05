@@ -1,0 +1,34 @@
+#%RAML 1.0 DataType
+
+displayName: User
+description: |
+  An object representing test platform user
+type: object
+properties:
+  displayName:
+    type: string
+    description: |
+      User's full name returned from OAuth
+  imageUrl:
+    required: false
+    type: string
+    displayName: Thumb
+    description: |
+      User image if any. It is used to render user icon in the frontend UI.
+  loggedIn:
+    type: boolean
+    displayName: Looged in
+    description: Determines if user has session or valid credentials.
+  orgUser:
+    type: boolean
+    displayName: Organization user
+    description: |
+      True if the user belongs to MuleSoft or Salesforce organization.
+      This is determinned from OAuth profile response from emai.
+  superUser:
+    type: boolean
+    description: Not to be used. Probably will be removed.
+  tos:
+    type: boolean
+    displayName: Terms of service accepted
+    description: Whether or not the user accepted terms of service.
