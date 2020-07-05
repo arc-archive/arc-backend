@@ -14,7 +14,8 @@
     "lint:versions": "node ./scripts/lint-versions.js",
     "postinstall": "npm run build && patch-package",
     "publish": "lerna publish --message 'chore: release new versions'",
-    "test:node": "lerna run test:node --stream"
+    "test:node": "lerna run test:node --stream",
+    "test": "lerna run test --stream"
   },
   "repository": {
     "type": "git",
