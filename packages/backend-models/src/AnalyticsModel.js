@@ -14,6 +14,7 @@ import dateFormat from './DateFormat.js';
 /** @typedef {import('./AnalyticsModel').MonthlySessionsQueryResult} MonthlySessionsQueryResult */
 /** @typedef {import('./AnalyticsModel').CustomSessionsQueryResult} CustomSessionsQueryResult */
 /** @typedef {import('./AnalyticsModel').CustomUserQueryResult} CustomUserQueryResult */
+/** @typedef {import('./AnalyticsModel').ActiveSessionCreateResult} ActiveSessionCreateResult */
 
 /**
  * A model for catalog items.
@@ -31,8 +32,7 @@ export class AnalyticsModel extends BaseModel {
    *
    * @param {string} applicationId The client generated Application ID.
    * @param {number} timeZoneOffset Client's timezone offset.
-   * @return {Promise<boolean>} True if new session has been recorded or false if existing
-   * session has been updated.
+   * @return {Promise<ActiveSessionCreateResult>}
    */
   async recordSession(applicationId, timeZoneOffset) {
     let time = Date.now();
@@ -107,7 +107,7 @@ export class AnalyticsModel extends BaseModel {
     const entryStringKey = dateFormat(new Date(time), 'YYYYMMdd');
     return this.store.key({
       namespace: this.namespace,
-      path: ['User', `${applicationId }/${ entryStringKey}`],
+      path: ['User', `${applicationId}/${entryStringKey}`],
     });
   }
 
@@ -116,7 +116,7 @@ export class AnalyticsModel extends BaseModel {
    *
    * @param {string} applicationId Anonymized application ID.
    * @param {number} time A timestamp of the day of the user visit.
-   * @return {Promise<boolean>} If true then new session wass created and false if session already
+   * @return {Promise<ActiveSessionCreateResult>} If true then new session wass created and false if session already
    * existed in the datastore.
    */
   async ensureSession(applicationId, time) {
@@ -137,12 +137,12 @@ export class AnalyticsModel extends BaseModel {
   async getActiveSession(applicationId, time) {
     const past = time - 1800000;
     const query = this.store.createQuery(this.namespace, 'Session')
-        .filter('appId', '=', applicationId)
-        .filter('lastActive', '>=', past)
-        .order('lastActive', {
-          descending: true,
-        })
-        .limit(1);
+    .filter('appId', '=', applicationId)
+    .filter('lastActive', '>=', past)
+    .order('lastActive', {
+      descending: true,
+    })
+    .limit(1);
     const [entities] = await this.store.runQuery(query);
     if (entities && entities.length) {
       return /** @type ActiveSession */ (entities[0]);
@@ -154,27 +154,34 @@ export class AnalyticsModel extends BaseModel {
    * Updates active session data
    * @param {ActiveSession} entity An entity to update
    * @param {number} time Updated session time
-   * @return {Promise<boolean>}
+   * @return {Promise<ActiveSessionCreateResult>}
    */
   async updateActiveSession(entity, time) {
     entity.lastActive = time;
     await this.store.upsert(entity);
-    return false;
+    return { ...this.fromDatastore(entity), newSession: false };
+  }
+
+  /**
+   * @return {Key} Session store key with auto-increment value.
+   */
+  createSessionKey() {
+    return this.store.key({
+      namespace: this.namespace,
+      path: ['Session'],
+    });
   }
 
   /**
    * Creates a session entry
    * @param {string} applicationId The application ID
    * @param {number} time The time of the session
-   * @return {Promise<boolean>}
+   * @return {Promise<ActiveSessionCreateResult>}
    */
   async createActiveSession(applicationId, time) {
-    const entryKey = this.store.key({
-      namespace: this.namespace,
-      path: ['Session'],
-    });
+    const key = this.createSessionKey();
     const entity = {
-      key: entryKey,
+      key,
       data: {
         appId: applicationId,
         day: time,
@@ -182,7 +189,8 @@ export class AnalyticsModel extends BaseModel {
       },
     };
     await this.store.save(entity);
-    return true;
+    const [created] = await this.store.get(key);
+    return { ...this.fromDatastore(created), newSession: true };
   }
 
   /**
@@ -268,8 +276,8 @@ export class AnalyticsModel extends BaseModel {
    */
   async _queryDailyUsers(start, end) {
     const query = this.store.createQuery(this.namespace, 'DailyUsers')
-        .filter('day', '>=', start)
-        .filter('day', '<=', end);
+    .filter('day', '>=', start)
+    .filter('day', '<=', end);
     const [entities] = await this.store.runQuery(query);
     if (!entities || !entities.length) {
       return [];
@@ -367,9 +375,9 @@ export class AnalyticsModel extends BaseModel {
    * @return {Promise<DailySession[]>} Sessions in a date range
    */
   async _queryDailySessions(start, end) {
-    const query = this.store.createQuery('analytics', 'DailySessions')
-        .filter('day', '>=', start)
-        .filter('day', '<=', end);
+    const query = this.store.createQuery(this.namespace, 'DailySessions')
+    .filter('day', '>=', start)
+    .filter('day', '<=', end);
     const [entities] = await this.store.runQuery(query);
     if (!entities || !entities.length) {
       return [];
@@ -391,9 +399,9 @@ export class AnalyticsModel extends BaseModel {
    * @return {Promise<CustomSessionsQueryResult>} Sessions in a date range
    */
   async queryCustomRangeSessions(start, end) {
-    const query = this.store.createQuery('analytics', 'DailySessions')
-        .filter('day', '>=', start)
-        .filter('day', '<=', end);
+    const query = this.store.createQuery(this.namespace, 'DailySessions')
+    .filter('day', '>=', start)
+    .filter('day', '<=', end);
     const [entities] = await this.store.runQuery(query);
     if (!entities || !entities.length) {
       return {
@@ -422,9 +430,9 @@ export class AnalyticsModel extends BaseModel {
    * @return {Promise<CustomUserQueryResult>} Users in a date range
    */
   async queryCustomRangeUsers(start, end) {
-    const query = this.store.createQuery('analytics', 'DailyUsers')
-        .filter('day', '>=', start)
-        .filter('day', '<=', end);
+    const query = this.store.createQuery(this.namespace, 'DailyUsers')
+    .filter('day', '>=', start)
+    .filter('day', '<=', end);
     const [entities] = await this.store.runQuery(query);
     if (!entities || !entities.length) {
       return {

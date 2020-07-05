@@ -11,6 +11,12 @@ export declare interface ActiveSession {
   day: number;
   lastActive: number;
 }
+export declare interface ActiveSessionCreateResult extends ActiveSession {
+  /**
+   * When set to tru a new session was created (no previous session was find)
+   */
+  newSession: boolean;
+}
 export declare interface DailyUser {
   day: number;
   items: number;
@@ -118,7 +124,7 @@ export class AnalyticsModel extends BaseModel {
    * @returns If true then new session wass created and false if session already
    * existed in the datastore.
    */
-  ensureSession(applicationId: string, time: number): Promise<boolean>;
+  ensureSession(applicationId: string, time: number): Promise<ActiveSessionCreateResult>;
 
   /**
    * Gets a user session recorded in last 30 minutes.
@@ -134,14 +140,19 @@ export class AnalyticsModel extends BaseModel {
    * @param {ActiveSession} entity An entity to update
    * @param time Updated session time
    */
-  updateActiveSession(entity: ActiveSession, time: number): Promise<boolean>;
+  updateActiveSession(entity: ActiveSession, time: number): Promise<ActiveSessionCreateResult>;
+
+  /**
+   * @returns Session store key with auto-increment value.
+   */
+  createSessionKey(): entity.Key;
 
   /**
    * Creates a session entry
    * @param applicationId The application ID
    * @param time The time of the session
    */
-  createActiveSession(applicationId: string, time: number): Promise<boolean>;
+  createActiveSession(applicationId: string, time: number): Promise<ActiveSessionCreateResult>;
 
   /**
    * Gets the computed number of users for a day
