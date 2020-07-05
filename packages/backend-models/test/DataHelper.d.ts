@@ -5,6 +5,9 @@ import { DependencyEntry, DependencyModel } from '../src/DependencyModel';
 import { TestReport, TestBrowserResult } from '../src/TestReport';
 import { TestComponentModel } from '../src/TestComponentModel';
 import { EditableTestEntity, TestModel } from '../src/TestModel';
+import { UserEntity } from '../src/UserModel';
+import { PassportProfile } from '../src/PassportProfile';
+import { TokenInfo, TokenModel } from '../src/TokenModel';
 
 export declare interface ComponentInsertOptions {
   name?: string;
@@ -28,6 +31,17 @@ export declare interface CreateComponentVersionResult {
   changeLog: string;
 }
 
+export declare interface TokenCreateInfo {
+  /**
+   * List of scopes
+   */
+  scopes: string[];
+  /**
+   * Describes when the token expires.
+   */
+  expires?: number;
+}
+
 export declare class DataHelper {
   deleteEntities(model: BaseModel, kind: string): Promise<void>;
   insertComponentGroup(model: BaseModel, name: string): Promise<entity.Key>;
@@ -47,6 +61,11 @@ export declare class DataHelper {
   populateComponentTestReports(model: TestComponentModel, testId?: string, sample?: number): Promise<void>;
   generateEditableTestEntity(): EditableTestEntity;
   populateTests(model: TestModel, sample?: number): Promise<string[]>;
+  generatePassportProfile(): PassportProfile;
+  generateUserEntity(): UserEntity;
+  generateToken(user: UserEntity, createInfo: TokenCreateInfo): string;
+  verifyToken(token: string): TokenInfo;
+  populateTokens(model: TokenModel, user: UserEntity, sample?: number): Promise<string[]>;
 }
 
 declare const instance: DataHelper;

@@ -1,4 +1,5 @@
 import Chance from 'chance';
+import jwt from 'jsonwebtoken';
 
 /** @typedef {import('../src/BaseModel').BaseModel} BaseModel */
 /** @typedef {import('@google-cloud/datastore/build/src/entity').entity.Key} Key */
@@ -19,10 +20,19 @@ import Chance from 'chance';
 /** @typedef {import('../src/TestComponentModel').TestComponentModel} TestComponentModel */
 /** @typedef {import('../src/TestModel').EditableTestEntity} EditableTestEntity */
 /** @typedef {import('../src/TestModel').TestModel} TestModel */
+/** @typedef {import('../src/UserModel').UserEntity} UserEntity */
+/** @typedef {import('../src/PassportProfile').PassportProfile} PassportProfile */
+/** @typedef {import('../src/TokenModel').EditableToken} EditableToken */
+/** @typedef {import('../src/TokenModel').TokenEntity} TokenEntity */
+/** @typedef {import('../src/TokenModel').TokenInfo} TokenInfo */
+/** @typedef {import('../src/TokenModel').TokenModel} TokenModel */
+/** @typedef {import('./DataHelper').TokenCreateInfo} TokenCreateInfo */
 
 const chance = new Chance();
-const scopes = ['@advanced-rest-client', '@anypoint-web-components', '@api-components', '@api-modeling'];
+const packageScopes = ['@advanced-rest-client', '@anypoint-web-components', '@api-components', '@api-modeling'];
 const orgs = ['advanced-rest-client', 'anypoint-web-components', 'api-modeling'];
+const SECRET = 'test-abc-secret';
+const tokenIssuer = 'urn:arc-ci';
 
 /**
  * Data processing helper for models
@@ -208,7 +218,7 @@ class DataHelper {
    * @return {string} Random package name
    */
   generatePackageName() {
-    const scope = chance.pick(scopes);
+    const scope = chance.pick(packageScopes);
     return `${scope}/${chance.word()}-${chance.word()}`;
   }
 
@@ -344,6 +354,103 @@ class DataHelper {
       const entity = {
         key,
         data: info,
+      };
+      transaction.save(entity);
+      keys.push(key.name);
+    });
+    await transaction.commit();
+    return keys;
+  }
+
+  /**
+   * @return {PassportProfile}
+   */
+  generatePassportProfile() {
+    return {
+      provider: 'google',
+      id: chance.word(),
+      displayName: chance.name(),
+      emails: [{ value: chance.email() }],
+      photos: [{ value: chance.url() }],
+    };
+  }
+
+  /**
+   * @return {UserEntity}
+   */
+  generateUserEntity() {
+    return {
+      id: chance.guid(),
+      displayName: chance.name(),
+      orgUser: true,
+      imageUrl: chance.url(),
+      tos: false,
+      email: chance.email({
+        domain: 'mulesoft.com',
+      }),
+    };
+  }
+
+  /**
+   * Generates a new JWT.
+   * @param {UserEntity} user Session user object
+   * @param {TokenCreateInfo} createInfo Create options
+   * @return {string} Generated token.
+   */
+  generateToken(user, createInfo) {
+    const data = {
+      uid: user.id,
+      scopes: createInfo.scopes,
+    };
+    const opts = {
+      issuer: tokenIssuer,
+    };
+    if (createInfo.expires) {
+      opts.expiresIn = createInfo.expires;
+    }
+    return jwt.sign(data, SECRET, opts);
+  }
+
+  /**
+   * Synchronously validates the token
+   * @param {string} token User token.
+   * @return {TokenInfo} Token info object.
+   */
+  verifyToken(token) {
+    return /** @type TokenInfo */ (jwt.verify(token, SECRET));
+  }
+
+  /**
+   * @param {TokenModel} model
+   * @param {UserEntity} user
+   * @param {number=} sample
+   * @return {Promise<string[]>}
+   */
+  async populateTokens(model, user, sample=25) {
+    const transaction = model.store.transaction();
+    await transaction.run();
+    const keys = [];
+    Array(sample).fill(0).forEach(() => {
+      const key = model.createUserTokenKey(user.id, chance.guid());
+      const scopes = [chance.word()];
+      const token = this.generateToken(user, {
+        scopes,
+        expires: chance.integer({ min: 0 }),
+      });
+      const tokenInfo = this.verifyToken(token);
+      const entity = {
+        key,
+        data: {
+          token,
+          scopes,
+          issuer: {
+            id: user.id,
+            displayName: user.displayName,
+          },
+          created: Date.now(),
+          expires: tokenInfo.exp,
+          name: chance.word(),
+        },
       };
       transaction.save(entity);
       keys.push(key.name);

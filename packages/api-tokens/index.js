@@ -3,8 +3,9 @@ import config from '@advanced-rest-client/backend-config';
 
 /** @typedef {import('@advanced-rest-client/backend-models').UserEntity} UserEntity */
 /** @typedef {import('./index').TokenCreateInfo} TokenCreateInfo */
+/** @typedef {import('./index').TokenInfo} TokenInfo */
 
-export const scopes = [
+export const defaultScopes = [
   'all',
   'create-test',
   'delete-test',
@@ -29,8 +30,8 @@ export function generateToken(user, createInfo) {
   const opts = {
     issuer: tokenIssuer,
   };
-  if (createInfo.expiresIn) {
-    opts.expiresIn = createInfo.expiresIn;
+  if (createInfo.expires) {
+    opts.expiresIn = createInfo.expires;
   }
   return jwt.sign(data, secret, opts);
 }
@@ -38,7 +39,7 @@ export function generateToken(user, createInfo) {
 /**
  * Veryfies whether the token is valid for the session.
  * @param {string} token User token.
- * @return {Promise<object>} Token info object.
+ * @return {Promise<TokenInfo>} Token info object.
  */
 export function verifyToken(token) {
   return new Promise((resolve, reject) => {
@@ -82,10 +83,10 @@ export function verifyToken(token) {
 /**
  * Synchronously validates the token
  * @param {string} token User token.
- * @return {object} Token info object.
+ * @return {TokenInfo} Token info object.
  */
 export function verifyTokenSync(token) {
-  return jwt.verify(token, config.get('SECRET'));
+  return /** @type TokenInfo */ (jwt.verify(token, config.get('SECRET')));
 }
 
 /**
@@ -105,7 +106,7 @@ export function hasScope(token, required) {
  * @return {boolean} True if the scope is one of the supported scopes.
  */
 export function isValidScope(scope) {
-  return scopes.indexOf(scope) !== -1;
+  return defaultScopes.indexOf(scope) !== -1;
 }
 
 /**
@@ -114,16 +115,16 @@ export function isValidScope(scope) {
  * @return {boolean} True if all scopes is one of the supported scopes.
  */
 export function areScopesValid(userScopes) {
-  const missing = userScopes.some((scope) => scopes.indexOf(scope) === -1);
+  const missing = userScopes.some((scope) => defaultScopes.indexOf(scope) === -1);
   return !missing;
 }
 
 /**
  * Checks whether a token expired.
- * @param {object} token Token info object
+ * @param {TokenInfo} token Token info object
  * @return {boolean} True when token is expired.
  */
 export function isTokenExpired(token) {
   const now = Date.now() / 1000;
-  return token.expires <= now;
+  return token.exp <= now;
 }

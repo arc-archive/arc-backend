@@ -143,7 +143,7 @@ class MeApiRoute extends BaseApi {
       const token = generateToken(sessionUser, opts);
       const info = await verifyToken(token);
       const name = req.body.name ? validator.escape(req.body.name) : undefined;
-      const result = await this.tokenModel.insert(sessionUser, info, token, name);
+      const result = await this.tokenModel.create(sessionUser, info, token, name);
       result.expired = false;
       res.send(result);
     } catch (cause) {

@@ -6,6 +6,7 @@ import uuidv4 from '@advanced-rest-client/uuid-generator/src/v4.js';
 /** @typedef {import('./TokenModel').TokenQueryResult} TokenQueryResult */
 /** @typedef {import('./TokenModel').TokenQueryOptions} TokenQueryOptions */
 /** @typedef {import('./UserModel').UserEntity} UserEntity */
+/** @typedef {import('./TokenModel').TokenInfo} TokenInfo */
 
 /**
  * A model representing user created authentication model
@@ -26,6 +27,70 @@ export class TokenModel extends BaseModel {
   }
 
   /**
+   * Creates new user token.
+   * @param {UserEntity} user Session user
+   * @param {TokenInfo} tokenInfo Decrypted token info
+   * @param {string} token The token
+   * @param {string=} name Optional name for the token
+   * @return {Promise<TokenEntity>} Promise resolved to the token object.
+   */
+  async create(user, tokenInfo, token, name) {
+    const id = uuidv4();
+    const key = this.createUserTokenKey(user.id, id);
+
+    const results = [
+      {
+        name: 'token',
+        value: token,
+        excludeFromIndexes: false,
+      },
+      {
+        name: 'scopes',
+        value: tokenInfo.scopes,
+        excludeFromIndexes: true,
+      },
+      {
+        name: 'issuer',
+        value: {
+          id: user.id,
+          displayName: user.displayName || '',
+        },
+        excludeFromIndexes: true,
+      },
+      {
+        name: 'created',
+        value: Date.now(),
+        excludeFromIndexes: false,
+      },
+      {
+        name: 'revoked',
+        value: false,
+        excludeFromIndexes: false,
+      },
+    ];
+    if (tokenInfo.exp) {
+      results[results.length] = {
+        name: 'expires',
+        value: tokenInfo.exp * 1000,
+        excludeFromIndexes: true,
+      };
+    }
+    if (name) {
+      results[results.length] = {
+        name: 'name',
+        value: name,
+        excludeFromIndexes: true,
+      };
+    }
+    const entity = {
+      key,
+      data: results,
+    };
+    await this.store.upsert(entity);
+    return this.get(user.id, id);
+  }
+
+  /**
    * Finds a token in the data store.
    * @param {string} token token
    * @return {Promise<TokenEntity|null>} Promise resolved to the token or `null` if the
@@ -35,13 +100,9 @@ export class TokenModel extends BaseModel {
     let query = this.store.createQuery(this.namespace, this.tokenKind);
     query = query.filter('token', '=', token);
     query = query.limit(1);
-    try {
-      const [found] = await this.store.runQuery(query);
-      if (found && found.length) {
-        return this.fromDatastore(found[0]);
-      }
-    } catch (e) {
-      //
+    const [found] = await this.store.runQuery(query);
+    if (found && found.length) {
+      return this.fromDatastore(found[0]);
     }
     return null;
   }
@@ -86,65 +147,6 @@ export class TokenModel extends BaseModel {
       return this.fromDatastore(entity);
     }
     return null;
-  }
-
-  /**
-   * Creates new user token.
-   * @param {UserEntity} user Session user
-   * @param {Object} tokenInfo Decrypted token info
-   * @param {string} token The token
-   * @param {string=} name Optional name for the token
-   * @return {Promise<TokenEntity>} Promise resolved to the token object.
-   */
-  async insert(user, tokenInfo, token, name) {
-    const id = uuidv4();
-    const key = this.createUserTokenKey(user.id, id);
-
-    const results = [
-      {
-        name: 'token',
-        value: token,
-        excludeFromIndexes: false,
-      },
-      {
-        name: 'scopes',
-        value: tokenInfo.scopes,
-        excludeFromIndexes: true,
-      },
-      {
-        name: 'issuer',
-        value: {
-          id: user.id,
-          displayName: user.displayName || '',
-        },
-        excludeFromIndexes: true,
-      },
-      {
-        name: 'created',
-        value: Date.now(),
-        excludeFromIndexes: false,
-      },
-    ];
-    if (tokenInfo.exp) {
-      results[results.length] = {
-        name: 'expires',
-        value: tokenInfo.exp * 1000,
-        excludeFromIndexes: true,
-      };
-    }
-    if (name) {
-      results[results.length] = {
-        name: 'name',
-        value: name,
-        excludeFromIndexes: true,
-      };
-    }
-    const entity = {
-      key,
-      data: results,
-    };
-    await this.store.upsert(entity);
-    return this.get(user.id, id);
   }
 
   /**

@@ -31,7 +31,7 @@ describe('UserModel', () => {
    */
   async function emptyEntities() {
     const model = new UserModel();
-    const query = model.store.createQuery(model.namespace, model.buildKind);
+    const query = model.store.createQuery(model.namespace, model.userKind);
     const [entities] = await model.store.runQuery(query);
     if (!entities.length) {
       return;

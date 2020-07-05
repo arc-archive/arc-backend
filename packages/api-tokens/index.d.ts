@@ -13,7 +13,34 @@ export declare interface TokenCreateInfo {
   /**
    * Describes when the token expires.
    */
-  expiresIn?: string;
+  expires?: string;
+}
+
+/**
+ * Token information struct after decoding it from the token string.
+ */
+export declare interface TokenInfo {
+  /**
+   * Token ID
+   */
+  uid: string;
+  /**
+   * List of scopes
+   */
+  scopes: string[];
+  /**
+   * Timestamp when the token was created
+   */
+  iat: number;
+  /**
+   * A timestamp when the token expires. When not set the token does
+   * not expire.
+   */
+  exp?: number;
+  /**
+   * Token issuer.
+   */
+  iss: string;
 }
 
 /**
