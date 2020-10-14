@@ -1,4 +1,4 @@
-import uuidv4 from '@advanced-rest-client/uuid-generator/src/v4.js';
+import uuidV4 from '@advanced-rest-client/uuid-generator/src/v4.js';
 import { BaseModel } from './BaseModel.js';
 
 /** @typedef {import('@google-cloud/datastore/build/src/entity').entity.Key} Key */
@@ -8,7 +8,7 @@ import { BaseModel } from './BaseModel.js';
 /** @typedef {import('./TestModel').TestQueryOptions} TestQueryOptions */
 /** @typedef {import('./TestModel').TestQueryResult} TestQueryResult */
 /** @typedef {import('./TestModel').EditableTestEntity} EditableTestEntity */
-/** @typedef {import('./TestModel').EditableBottpmUpEntity} EditableBottpmUpEntity */
+/** @typedef {import('./TestModel').EditableBottomUpEntity} EditableBottomUpEntity */
 
 /**
  * A model for catalog items.
@@ -76,7 +76,7 @@ export class TestModel extends BaseModel {
    */
   async create(info) {
     const now = Date.now();
-    const keyName = uuidv4();
+    const keyName = uuidV4();
     const key = this.createTestKey(keyName);
     const results = [
       {
@@ -119,7 +119,7 @@ export class TestModel extends BaseModel {
         excludeFromIndexes: true,
       });
     }
-    const bottomUpType = /** @type EditableBottpmUpEntity */ (info);
+    const bottomUpType = /** @type EditableBottomUpEntity */ (info);
 
     if (bottomUpType.component) {
       results.push({
@@ -214,7 +214,7 @@ export class TestModel extends BaseModel {
   }
 
   /**
-   * Marks test as errored
+   * Marks test as an error
    * @param {string} id The ID of the test.
    * @param {string} message The error message from the test run
    * @return {Promise<void>}
@@ -241,7 +241,7 @@ export class TestModel extends BaseModel {
   }
 
   /**
-   * Marks component as errored
+   * Marks component as an error
    * @param {string} id The ID of the test.
    * @return {Promise<void>}
    */

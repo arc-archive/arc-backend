@@ -49,7 +49,7 @@ class GroupsApiRoute extends BaseApi {
     } catch (e) {
       logging.error(e.message);
       if (e.code === 3) {
-        this.sendError(res, 'Inavlid pageToken parameter');
+        this.sendError(res, 'Invalid pageToken parameter');
         return;
       }
       this.sendError(res, e.message, 500);
@@ -106,7 +106,7 @@ class GroupsApiRoute extends BaseApi {
     } catch (e) {
       logging.error(e.message);
       if (e.code === 3) {
-        this.sendError(res, 'Inavlid pageToken parameter');
+        this.sendError(res, 'Invalid pageToken parameter');
         return;
       }
       this.sendError(res, e.message, 500);
@@ -161,7 +161,7 @@ class GroupsApiRoute extends BaseApi {
     } catch (e) {
       logging.error(e.message);
       if (e.code === 3) {
-        this.sendError(res, 'Inavlid pageToken parameter');
+        this.sendError(res, 'Invalid pageToken parameter');
         return;
       }
       this.sendError(res, e.message, 500);

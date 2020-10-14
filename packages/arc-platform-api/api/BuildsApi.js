@@ -1,5 +1,5 @@
 import express from 'express';
-import { ComponentBuildModel } from '@advanced-rest-client/backend-models';
+import { GitHubBuildModel } from '@advanced-rest-client/backend-models';
 import logging from '@advanced-rest-client/arc-platform-logger';
 // import background from '../lib/background.js';
 import { BaseApi } from './BaseApi.js';
@@ -14,14 +14,6 @@ export default router;
  * API route definition for builds.
  */
 class BuildsApiRoute extends BaseApi {
-  /**
-   * @constructor
-   */
-  constructor() {
-    super();
-    this.model = new ComponentBuildModel();
-  }
-
   /**
    * Route to list builds.
    * @param {Request} req
@@ -38,16 +30,14 @@ class BuildsApiRoute extends BaseApi {
     let typedLimit;
     if (limit) {
       typedLimit = Number(limit);
-      if (Number.isNaN(typedLimit)) {
-        typedLimit = undefined;
-      }
     }
     let typedToken;
     if (pageToken) {
       typedToken = String(pageToken);
     }
     try {
-      const result = await this.model.list({
+      const model = new GitHubBuildModel();
+      const result = await model.list({
         limit: typedLimit,
         pageToken: typedToken,
       });
@@ -55,7 +45,7 @@ class BuildsApiRoute extends BaseApi {
     } catch (cause) {
       logging.error(cause);
       if (cause.code === 3) {
-        this.sendError(res, 'Inavlid pageToken parameter');
+        this.sendError(res, 'Invalid pageToken parameter');
         return;
       }
       this.sendError(res, cause.message, 500);
@@ -71,7 +61,8 @@ class BuildsApiRoute extends BaseApi {
   async getBuild(req, res) {
     const { id } = req.params;
     try {
-      const resource = await this.model.get(id);
+      const model = new GitHubBuildModel();
+      const resource = await model.get(id);
       if (resource) {
         res.send(resource);
       } else {
@@ -93,11 +84,13 @@ class BuildsApiRoute extends BaseApi {
     const { id } = req.params;
     try {
       await this.ensureAccess(req, 'restart-build');
-      await this.model.restartBuild(id);
+      const model = new GitHubBuildModel();
+      await model.restartBuild(id);
       // background.queueStageBuild(id);
+      res.sendStatus(201).end();
     } catch (cause) {
-      logging.error(cause);
-      const status = cause.status || 500;
+      // logging.error(cause);
+      const status = cause.code || 500;
       this.sendError(res, cause.message, status);
     }
   }

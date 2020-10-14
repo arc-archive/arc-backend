@@ -20,7 +20,7 @@ export declare interface BaseTestEntity {
   purpose?: string;
 }
 
-export declare interface EditableBottpmUpEntity extends BaseTestEntity {
+export declare interface EditableBottomUpEntity extends BaseTestEntity {
   /**
    * SHA commit to checkout
    */
@@ -57,7 +57,7 @@ declare interface TestInternalEntity {
   created: number;
 }
 
-export declare interface BottpmUpEntity extends EditableBottpmUpEntity, TestInternalEntity, Entity {
+export declare interface BottomUpEntity extends EditableBottomUpEntity, TestInternalEntity, Entity {
 
 }
 
@@ -67,14 +67,14 @@ export declare interface EditableAmfBuildEntity extends BaseTestEntity {
    */
   commit?: string;
   /**
-   * The branch of the AMF liobrary to checkout when performing the test.
+   * The branch of the AMF library to checkout when performing the test.
    */
   branch: string;
 }
 export declare interface AmfBuildEntity extends EditableAmfBuildEntity, TestInternalEntity, Entity {}
 
-export declare type TestEntity = AmfBuildEntity | BottpmUpEntity;
-export declare type EditableTestEntity = EditableAmfBuildEntity | EditableBottpmUpEntity;
+export declare type TestEntity = AmfBuildEntity | BottomUpEntity;
+export declare type EditableTestEntity = EditableAmfBuildEntity | EditableBottomUpEntity;
 
 export declare interface TestQueryResult extends QueryResult<TestEntity> {}
 

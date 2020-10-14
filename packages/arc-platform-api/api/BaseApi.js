@@ -61,7 +61,7 @@ export class BaseApi {
   }
 
   /**
-   * Sends error to the client in a standarized way.
+   * Sends error to the client in a standardized way.
    * @param {Response} res HTTP response object
    * @param {String} message Error message to send.
    * @param {Number=} [status=400] HTTP status code, default to 400.
@@ -178,7 +178,7 @@ export class BaseApi {
   /**
    * Sends response as a list response.
    * @param {object[]} result Response from the data model.
-   * @param {Response} res HTTP resposne
+   * @param {Response} res HTTP response
    */
   sendListResult(result, res) {
     const data = {
@@ -193,7 +193,7 @@ export class BaseApi {
   /**
    * Sends query results data in response.
    * @param {QueryResult} data
-   * @param {Response} res HTTP resposne
+   * @param {Response} res HTTP response
    */
   sendQueryResult(data, res) {
     const result = {
@@ -206,9 +206,9 @@ export class BaseApi {
   }
 
   /**
-   * Validates pagination parameters for variuos endpoints that result with list of results.
+   * Validates pagination parameters for various endpoints that result with list of results.
    * @param {Object} req HTTP request
-   * @return {String|undefined} Validation oerr message or undefined if valid.
+   * @return {String|undefined} Validation error message or undefined if valid.
    */
   validatePagination(req) {
     const messages = [];

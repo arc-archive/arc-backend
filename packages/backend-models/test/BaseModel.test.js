@@ -45,7 +45,7 @@ describe('BaseModel', () => {
       ['coverageComponentKind', 'ComponentVersionCoverageResult'],
       ['apicUsersNamespace', 'api-components-users'],
       ['apicTestsNamespace', 'api-components-tests'],
-      ['buildsNamespace', 'api-components-builds'],
+      ['buildsNamespace', 'apic-github-builds'],
       ['coverageNamespace', 'api-components-coverage'],
     ].forEach(([prop, value]) => {
       it(`has ${prop} property`, () => {

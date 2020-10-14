@@ -19,10 +19,14 @@ export {
   ActiveUser,
 } from './src/AnalyticsModel';
 export {
-  ComponentBuildModel,
-  EditableComponentBuildEntity,
-  ComponentBuildEntity,
-} from './src/ComponentBuildModel';
+  GitHubBuildModel,
+} from './src/GitHubBuildModel';
+export {
+  GithubBuild,
+  GithubBuildEntity,
+  GithubBuildQueryOptions,
+  GithubBuildQueryResult,
+} from './src/types/GitHubBuild';
 export {
   ComponentModel,
   GroupEntity,
@@ -56,7 +60,7 @@ export { DependencyModel, DependencyEntity } from './src/DependencyModel';
 export { MessageModel, MessageFilter, CreateMessageEntity, MessageEntity, MessageQueryResult } from './src/MessageModel';
 export { PassportProfile } from './src/PassportProfile';
 export { TestLogModel, TestLogEntity, TestLogQueryResult, TestLogQueryOptions } from './src/TestLogModel';
-export { TestModel, EditableBottpmUpEntity, EditableAmfBuildEntity, TestEntity, EditableTestEntity, TestQueryResult, TestQueryOptions } from './src/TestModel';
+export { TestModel, EditableBottomUpEntity as EditableBottomUpEntity, EditableAmfBuildEntity, TestEntity, EditableTestEntity, TestQueryResult, TestQueryOptions } from './src/TestModel';
 export { TestReport, TestBrowserResult } from './src/TestReport';
 export { TestComponentModel } from './src/TestComponentModel';
 export { TokenModel, TokenEntity, EditableToken, TokenQueryResult, TokenQueryOptions } from './src/TokenModel';

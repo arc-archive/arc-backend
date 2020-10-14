@@ -1,62 +1,62 @@
 import nconf from 'nconf';
 
 nconf
-    // 1. Command-line arguments
-    .argv()
-    // 2. Environment variables
-    .env([
-      'GCLOUD_PROJECT',
-      'NODE_ENV',
-      'OAUTH2_CLIENT_ID',
-      'OAUTH2_CLIENT_SECRET',
-      'OAUTH2_CALLBACK',
-      'PORT',
-      'SECRET',
-      'INSTANCE_CONNECTION_NAME',
-      'MEMCACHE_URL',
-      'GPG_KEY',
-      'CI_EMAIL',
-      'CI_NAME',
-      'GPG_KEY_PASS',
-      'GITHUB_SSH_KEY',
-      'GITHUB_SSH_KEY_PUB',
-      'GITHUB_SSH_KEY_PASS',
-      'WEBHOOK_SECRET',
-      'NPM_TOKEN',
-    ])
-    // 3. Application config file
-    .file({ file: 'config.json' })
-    // 4. Defaults
-    .defaults({
-    // This is the id of your project in the Google Cloud Developers Console.
-      GCLOUD_PROJECT: '',
+// 1. Command-line arguments
+.argv()
+// 2. Environment variables
+.env([
+  'GCLOUD_PROJECT',
+  'NODE_ENV',
+  'OAUTH2_CLIENT_ID',
+  'OAUTH2_CLIENT_SECRET',
+  'OAUTH2_CALLBACK',
+  'PORT',
+  'SECRET',
+  'INSTANCE_CONNECTION_NAME',
+  'MEMCACHE_URL',
+  'GPG_KEY',
+  'CI_EMAIL',
+  'CI_NAME',
+  'GPG_KEY_PASS',
+  'GITHUB_SSH_KEY',
+  'GITHUB_SSH_KEY_PUB',
+  'GITHUB_SSH_KEY_PASS',
+  'WEBHOOK_SECRET',
+  'NPM_TOKEN',
+])
+// 3. Application config file
+.file({ file: 'config.json' })
+// 4. Defaults
+.defaults({
+// This is the id of your project in the Google Cloud Developers Console.
+  GCLOUD_PROJECT: '',
 
-      // Connection url for the Memcache instance used to store session data
-      MEMCACHE_URL: 'localhost:11211',
+  // Connection url for the Memcache instance used to store session data
+  MEMCACHE_URL: 'localhost:11211',
 
-      OAUTH2_CLIENT_ID: '',
-      OAUTH2_CLIENT_SECRET: '',
-      OAUTH2_CALLBACK: 'http://localhost:8080/auth/callback',
+  OAUTH2_CLIENT_ID: '',
+  OAUTH2_CLIENT_SECRET: '',
+  OAUTH2_CALLBACK: 'http://localhost:8080/auth/callback',
 
-      PORT: 8080,
+  PORT: 8080,
 
-      // Set this a secret string of your choosing
-      SECRET: '',
-      // GPG key configuration to sign commits in GitHub CI pipeline.
-      // This information is encoded as Secret.
-      GPG_KEY: '', // GPG key location
-      CI_EMAIL: '', // GPG key's email
-      CI_NAME: '', // GPG user name
-      GPG_KEY_PASS: '', // Key password
+  // Set this a secret string of your choosing
+  SECRET: '',
+  // GPG key configuration to sign commits in GitHub CI pipeline.
+  // This information is encoded as Secret.
+  GPG_KEY: '', // GPG key location
+  CI_EMAIL: '', // GPG key's email
+  CI_NAME: '', // GPG user name
+  GPG_KEY_PASS: '', // Key password
 
-      // SSH key to connect to GitHub
-      GITHUB_SSH_KEY: '', // location of the key
-      GITHUB_SSH_KEY_PUB: '', // location of the public key
-      GITHUB_SSH_KEY_PASS: '', // Key's password
+  // SSH key to connect to GitHub
+  GITHUB_SSH_KEY: '', // location of the key
+  GITHUB_SSH_KEY_PUB: '', // location of the public key
+  GITHUB_SSH_KEY_PASS: '', // Key's password
 
-      // GitHub webhook secret
-      WEBHOOK_SECRET: '',
-    });
+  // GitHub webhook secret
+  WEBHOOK_SECRET: '',
+});
 
 export default nconf;
 
@@ -73,7 +73,7 @@ function checkConfig(setting) {
 /**
  * To be called by API app.
  */
-export function ckeckApiConfig() {
+export function checkApiConfig() {
   checkConfig('GCLOUD_PROJECT');
   checkConfig('PORT');
 
@@ -87,7 +87,7 @@ export function ckeckApiConfig() {
 /**
  * To be called by GitHub integration app.
  */
-export function ckeckGitHubConfig() {
+export function checkGitHubConfig() {
   checkConfig('GCLOUD_PROJECT');
   checkConfig('PORT');
 
@@ -105,7 +105,7 @@ export function ckeckGitHubConfig() {
 /**
  * To be called by GitHub integration app.
  */
-export function ckeckTestsConfig() {
+export function checkTestsConfig() {
   checkConfig('GCLOUD_PROJECT');
   checkConfig('PORT');
 

@@ -48,7 +48,7 @@ export declare class BaseApi {
   wrapApi(router: Router, routes: Array<string[]>): void;
 
   /**
-   * Sends error to the client in a standarized way.
+   * Sends error to the client in a standardized way.
    * @param res HTTP response object
    * @param message Error message to send.
    * @param status HTTP status code, default to 400.
@@ -69,28 +69,28 @@ export declare class BaseApi {
    ensureAccess(req: Request, scope?: string): Promise<void>;
 
   /**
-   * CORS request middleaware.
+   * CORS request middleware.
    */
   _processCors(req: Request, callback: Function): void;
 
   /**
    * Sends response as a list response.
    * @param result Response from the data model.
-   * @param res HTTP resposne
+   * @param res HTTP response
    */
   sendListResult<T>(result: T[], res: Response): void;
 
   /**
    * Sends query results data in response.
    * @param data
-   * @param res HTTP resposne
+   * @param res HTTP response
    */
   sendQueryResult<T>(data: QueryResult<T>, res: Response): void;
 
   /**
-   * Validates pagination parameters for variuos endpoints that result with list of results.
+   * Validates pagination parameters for various endpoints that result with list of results.
    * @param req HTTP request
-   * @returns Validation oerr message or undefined if valid.
+   * @returns Validation error message or undefined if valid.
    */
   validatePagination(req: Request): string|undefined;
 }

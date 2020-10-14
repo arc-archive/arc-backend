@@ -1,13 +1,13 @@
 import { assert } from 'chai';
-import { default as config, ckeckApiConfig, ckeckGitHubConfig, ckeckTestsConfig } from '../index.js';
+import { default as config, checkApiConfig, checkGitHubConfig, checkTestsConfig } from '../index.js';
 
 describe('backend-config', () => {
-  describe('ckeckApiConfig()', () => {
+  describe('checkApiConfig()', () => {
     afterEach(() => config.defaults([]));
 
     it('throws when no configuration', () => {
       assert.throws(() => {
-        ckeckApiConfig();
+        checkApiConfig();
       });
     });
 
@@ -21,16 +21,16 @@ describe('backend-config', () => {
         OAUTH2_CALLBACK: 'http://localhost:8080/auth/callback',
         SECRET: 'any',
       });
-      ckeckApiConfig();
+      checkApiConfig();
     });
   });
 
-  describe('ckeckGitHubConfig()', () => {
+  describe('checkGitHubConfig()', () => {
     afterEach(() => config.defaults([]));
 
     it('throws when no configuration', () => {
       assert.throws(() => {
-        ckeckGitHubConfig();
+        checkGitHubConfig();
       });
     });
 
@@ -48,16 +48,16 @@ describe('backend-config', () => {
         WEBHOOK_SECRET: 'd',
         NPM_TOKEN: 'e',
       });
-      ckeckGitHubConfig();
+      checkGitHubConfig();
     });
   });
 
-  describe('ckeckTestsConfig()', () => {
+  describe('checkTestsConfig()', () => {
     afterEach(() => config.defaults([]));
 
     it('throws when no configuration', () => {
       assert.throws(() => {
-        ckeckTestsConfig();
+        checkTestsConfig();
       });
     });
 
@@ -73,7 +73,7 @@ describe('backend-config', () => {
         GITHUB_SSH_KEY_PUB: 'b',
         GITHUB_SSH_KEY_PASS: 'c',
       });
-      ckeckTestsConfig();
+      checkTestsConfig();
     });
   });
 });

@@ -1,34 +1,51 @@
 import { BaseModel } from './BaseModel.js';
-import uuidv4 from '@advanced-rest-client/uuid-generator/src/v4.js';
+import uuidV4 from '@advanced-rest-client/uuid-generator/src/v4.js';
 
-/** @typedef {import('./ComponentBuildModel').EditableComponentBuildEntity} EditableComponentBuildEntity */
-/** @typedef {import('./ComponentBuildModel').ComponentBuildEntity} ComponentBuildEntity */
-/** @typedef {import('./ComponentBuildModel').ComponentBuildQueryResult} ComponentBuildQueryResult */
-/** @typedef {import('./ComponentBuildModel').ComponentBuildQueryOptions} ComponentBuildQueryOptions */
+/** @typedef {import('./types/GitHubBuild').GithubBuildQueryOptions} GithubBuildQueryOptions */
+/** @typedef {import('./types/GitHubBuild').GithubBuildQueryResult} GithubBuildQueryResult */
+/** @typedef {import('./types/GitHubBuild').GithubBuild} GithubBuild */
+/** @typedef {import('./types/GitHubBuild').GithubBuildEntity} GithubBuildEntity */
 
 /**
  * A list of properties to exclude from indexing.
  * @type {string[]}
  */
 const excludedIndexes = [
-  'type', 'commit', 'branch', 'status', 'component', 'error', 'message', 'sshUrl', 'org', 'bumpVersion',
+  'repository', 'type', 'started', 'ended', 'error', 'message', 'status',
 ];
 
 /**
- * A model for catalog items.
+ * A data store entry representing a CI build of a project in any connected organization.
+ *
+ * Each build is related to a part of the CI process:
+ *
+ * - Stage build (type)
+ *  - bump version (if previous version is the same)
+ *  - update changelog file
+ *  - merge with master
+ *  - push master & stage
+ * - Master build:
+ *   - tag GitHub release
+ *   - build release changelog
+ *   - push to GitHub
+ * - Tag build:
+ *   - release NPM package
+ *   - add a new version of the component
+ *   - add auto docs to the data store
+ *   - add the dependency information.
  */
-export class ComponentBuildModel extends BaseModel {
+export class GitHubBuildModel extends BaseModel {
   /**
    * @constructor
    */
   constructor() {
-    super('api-components-builds');
+    super('apic-github-builds');
   }
 
   /**
    * Lists test runs
-   * @param {ComponentBuildQueryOptions=} opts Query options
-   * @return {Promise<ComponentBuildQueryResult>} Query results.
+   * @param {GithubBuildQueryOptions=} opts Query options
+   * @return {Promise<GithubBuildQueryResult>} Query results.
    */
   async list(opts={}) {
     const { limit=this.listLimit, pageToken } = opts;
@@ -51,12 +68,12 @@ export class ComponentBuildModel extends BaseModel {
 
   /**
    * Creates a new build.
-   * @param {EditableComponentBuildEntity} info Build definition.
-   * @return {Promise<ComponentBuildEntity>} The created build
+   * @param {GithubBuild} info Build definition.
+   * @return {Promise<GithubBuildEntity>} The created build
    */
   async insertBuild(info) {
     const now = Date.now();
-    const id = uuidv4();
+    const id = uuidV4();
     const key = this.createBuildKey(id);
     const results = [
       {
@@ -65,8 +82,8 @@ export class ComponentBuildModel extends BaseModel {
         excludeFromIndexes: true,
       },
       {
-        name: 'branch',
-        value: info.branch,
+        name: 'repository',
+        value: info.repository,
         excludeFromIndexes: true,
       },
       {
@@ -75,39 +92,10 @@ export class ComponentBuildModel extends BaseModel {
       },
       {
         name: 'status',
-        value: info.status || 'queued',
-        excludeFromIndexes: true,
-      },
-      {
-        name: 'component',
-        value: info.component,
-        excludeFromIndexes: true,
-      },
-      {
-        name: 'commit',
-        value: info.commit,
-        excludeFromIndexes: true,
-      },
-      {
-        name: 'sshUrl',
-        value: info.sshUrl,
-        excludeFromIndexes: true,
-      },
-      {
-        name: 'org',
-        value: info.org,
+        value: 'queued',
         excludeFromIndexes: true,
       },
     ];
-
-    if (typeof info.bumpVersion === 'boolean') {
-      results[results.length] = {
-        name: 'bumpVersion',
-        // @ts-ignore
-        value: info.bumpVersion,
-        excludeFromIndexes: true,
-      };
-    }
 
     const entity = {
       key,
@@ -121,12 +109,15 @@ export class ComponentBuildModel extends BaseModel {
   /**
    * Reads the build info
    * @param {string} id The ID of the build
-   * @return {Promise<ComponentBuildEntity>}
+   * @return {Promise<GithubBuildEntity>}
    */
   async get(id) {
     const key = this.createBuildKey(id);
     const [entry] = await this.store.get(key);
-    return this.fromDatastore(entry);
+    if (entry) {
+      return this.fromDatastore(entry);
+    }
+    return undefined;
   }
 
   /**
@@ -137,7 +128,7 @@ export class ComponentBuildModel extends BaseModel {
   async startBuild(id) {
     await this.updateBuildProperties(id, {
       status: 'running',
-      startTime: Date.now(),
+      started: Date.now(),
     });
   }
 
@@ -149,8 +140,8 @@ export class ComponentBuildModel extends BaseModel {
   async restartBuild(id) {
     await this.updateBuildProperties(id, {
       status: 'queued',
-      startTime: Date.now(),
-      endTime: 0,
+      started: Date.now(),
+      ended: 0,
       message: '',
       error: false,
     });
@@ -165,7 +156,7 @@ export class ComponentBuildModel extends BaseModel {
   async setBuildError(id, message) {
     await this.updateBuildProperties(id, {
       status: 'finished',
-      endTime: Date.now(),
+      ended: Date.now(),
       error: true,
       message,
     });
@@ -180,7 +171,7 @@ export class ComponentBuildModel extends BaseModel {
   async finishBuild(id, message) {
     const props = {
       status: 'finished',
-      endTime: Date.now(),
+      ended: Date.now(),
     };
     if (message) {
       props.message = message;
@@ -190,7 +181,7 @@ export class ComponentBuildModel extends BaseModel {
 
   /**
    * Updates build properties in the data store.
-   * It uses a transation to update values.
+   * It uses a transaction to update values.
    *
    * @param {string} id The ID of the build
    * @param {object} props Properties to update
@@ -202,13 +193,13 @@ export class ComponentBuildModel extends BaseModel {
     try {
       await transaction.run();
       const data = await transaction.get(key);
-      const [test] = data;
-      Object.keys(props).forEach((key) => {
-        test[key] = props[key];
+      const [item] = data;
+      Object.keys(props).forEach((k) => {
+        item[k] = props[k];
       });
       transaction.save({
         key,
-        data: test,
+        data: item,
         excludeFromIndexes: excludedIndexes,
       });
       await transaction.commit();

@@ -1,5 +1,5 @@
 export { AnalyticsModel } from './src/AnalyticsModel.js';
-export { ComponentBuildModel } from './src/ComponentBuildModel.js';
+export { GitHubBuildModel } from './src/GitHubBuildModel.js';
 export { ComponentModel } from './src/ComponentModel.js';
 export { CoverageModel } from './src/CoverageModel.js';
 export { DependencyModel } from './src/DependencyModel.js';

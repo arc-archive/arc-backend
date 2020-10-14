@@ -219,7 +219,7 @@ class MeApiRoute extends BaseApi {
   }
 
   /**
-   * API route to revoce a token
+   * API route to revoke a token
    * @param {Request} req
    * @param {Response} res
    * @return {Promise<void>}

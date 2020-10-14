@@ -67,7 +67,7 @@ class MessagesApiRoute extends BaseApi {
   }
 
   /**
-   * Collectes typed query parameters.
+   * Collects typed query parameters.
    * @param {Request} req The request object
    * @return {MessageFilter} Query options
    */
@@ -163,7 +163,7 @@ class MessagesApiRoute extends BaseApi {
       this.sendQueryResult(result, res);
     } catch (e) {
       if (e.code === 3) {
-        this.sendError(res, 'Inavlid pageToken parameter');
+        this.sendError(res, 'Invalid pageToken parameter');
         return;
       }
       this.sendError(res, e.message, 500);
@@ -176,7 +176,7 @@ class MessagesApiRoute extends BaseApi {
    * @param {Response} res The response object
    * @return {Promise<void>}
    */
-  async createMesage(req, res) {
+  async createMessage(req, res) {
     try {
       const hasAccess = await this.isValidAccess(req, 'create-message');
       if (!hasAccess) {
@@ -260,6 +260,6 @@ const api = new MessagesApiRoute();
 api.setCors(router);
 api.wrapApi(router, [
   ['/', 'listMessages'],
-  ['/', 'createMesage', 'post'],
+  ['/', 'createMessage', 'post'],
   ['/:messageId', 'deleteMessage', 'delete'],
 ]);

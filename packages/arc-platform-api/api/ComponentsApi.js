@@ -25,7 +25,7 @@ class ComponentsApiRoute extends BaseApi {
   }
 
   /**
-   * Validates parameteres for `tag` query
+   * Validates parameters for `tag` query
    * @param {Request} req
    * @return {string|undefined} Error message or undefined if valid.
    */
@@ -43,9 +43,9 @@ class ComponentsApiRoute extends BaseApi {
       }
     } else {
       const typedTags = /** @type string[] */ (tags);
-      const typeMissmatch = typedTags.some((item) => typeof item !== 'string');
-      if (typeMissmatch) {
-        messages.push(`Tag ${typeMissmatch} is not a string.`);
+      const typeMismatch = typedTags.some((item) => typeof item !== 'string');
+      if (typeMismatch) {
+        messages.push(`Tag ${typeMismatch} is not a string.`);
       }
     }
     return messages.length ? messages.join(' ') : undefined;
@@ -71,9 +71,9 @@ class ComponentsApiRoute extends BaseApi {
     const { limit, pageToken, tags, group } = req.query;
     try {
       const opts = {};
-      const typedlimit = Number(limit);
-      if (!Number.isNaN(typedlimit)) {
-        opts.limit = typedlimit;
+      const typedLimit = Number(limit);
+      if (!Number.isNaN(typedLimit)) {
+        opts.limit = typedLimit;
       }
       if (pageToken) {
         opts.pageToken = String(pageToken);
@@ -89,7 +89,7 @@ class ComponentsApiRoute extends BaseApi {
     } catch (cause) {
       logging.error(cause);
       if (cause.code === 3) {
-        this.sendError(res, 'Inavlid pageToken parameter');
+        this.sendError(res, 'Invalid pageToken parameter');
         return;
       }
       this.sendError(res, cause.message, 500);
@@ -204,7 +204,7 @@ class ComponentsApiRoute extends BaseApi {
     } catch (cause) {
       logging.error(cause);
       if (cause.code === 3) {
-        this.sendError(res, 'Inavlid pageToken parameter');
+        this.sendError(res, 'Invalid pageToken parameter');
         return;
       }
       this.sendError(res, cause.message, 500);
@@ -232,7 +232,7 @@ class ComponentsApiRoute extends BaseApi {
     } catch (cause) {
       logging.error(cause);
       if (cause.code === 3) {
-        this.sendError(res, 'Inavlid pageToken parameter');
+        this.sendError(res, 'Invalid pageToken parameter');
         return;
       }
       this.sendError(res, cause.message, 500);
@@ -251,7 +251,7 @@ class ComponentsApiRoute extends BaseApi {
     if (scope[0] !== '@') {
       scope = `@${scope}`;
     }
-    // TODO (pawel): depndency keys are created in an invalid way
+    // TODO (pawel): dependency keys are created in an invalid way
     // const componentId = `${scope}/${component}`;
     const componentId = `${component}`;
     try {
@@ -281,7 +281,7 @@ class ComponentsApiRoute extends BaseApi {
     } catch (cause) {
       logging.error(cause);
       if (cause.code === 3) {
-        this.sendError(res, 'Inavlid pageToken parameter');
+        this.sendError(res, 'Invalid pageToken parameter');
         return;
       }
       this.sendError(res, cause.message, 500);

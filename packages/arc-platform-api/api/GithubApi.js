@@ -3,7 +3,7 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import crypto from 'crypto';
 import config from '@advanced-rest-client/backend-config';
-import { ComponentBuildModel, CoverageModel } from '@advanced-rest-client/backend-models';
+import { GitHubBuildModel, CoverageModel } from '@advanced-rest-client/backend-models';
 import logging from '@advanced-rest-client/arc-platform-logger';
 import { BaseApi } from './BaseApi.js';
 
@@ -36,7 +36,7 @@ function isPing(req) {
 }
 
 /**
- * Tests whether the push web hook is a mastr branch push.
+ * Tests whether the push web hook is a master branch push.
  * @param {object} headers The request headers
  * @param {object} body The request body.
  * @return {Boolean} True when the push is on master branch
@@ -63,7 +63,7 @@ function isTagPush(headers, body) {
 }
 
 /**
- * Tests whether the push web hook is a mastr branch push.
+ * Tests whether the push web hook is a master branch push.
  * @param {Request} req The request headers
  * @throws {Error} When the signature is invalid.
  */
@@ -87,11 +87,11 @@ function verifySignature(req) {
  */
 class GithubApiRoute extends BaseApi {
   /**
-   * @construcotr
+   * @constructor
    */
   constructor() {
     super();
-    this.model = new ComponentBuildModel();
+    this.model = new GitHubBuildModel();
     this.coverageModel = new CoverageModel();
   }
 
@@ -195,27 +195,10 @@ class GithubApiRoute extends BaseApi {
    * @return {Promise<void>}
    */
   async scheduleStageBuild(body) {
-    const branches = body.branches;
-    let branch;
-    for (let i = 0; i < branches.length; i++) {
-      if (branches[i].name === 'stage') {
-        branch = branches[i];
-        break;
-      }
-    }
     const sshUrl = body.repository.ssh_url;
-    const name = body.repository.full_name;
-    const org = body.organization.login;
-    const sha = branch.commit.sha;
-    const bumpVersion = this.isAutoBump(body);
     await this.model.insertBuild({
-      type: 'stage-build',
-      branch: 'stage',
-      component: name,
-      org,
-      commit: sha,
-      sshUrl,
-      bumpVersion,
+      type: 'stage',
+      repository: sshUrl,
     });
   }
 
@@ -226,17 +209,9 @@ class GithubApiRoute extends BaseApi {
    */
   async scheduleMasterBuild(body) {
     const sshUrl = body.repository.ssh_url;
-    const component = body.repository.full_name;
-    const org = body.organization.login;
-    const sha = body.head_commit.id;
-    const branch = 'master';
     await this.model.insertBuild({
-      type: 'master-build',
-      commit: sha,
-      branch,
-      component,
-      org,
-      sshUrl,
+      type: 'master',
+      repository: sshUrl,
     });
   }
 
@@ -249,15 +224,10 @@ class GithubApiRoute extends BaseApi {
     const sshUrl = body.repository.ssh_url;
     const component = body.repository.full_name;
     const org = body.organization.login;
-    const sha = body.head_commit.id;
     const tag = body.ref.replace('refs/tags/', '');
     await this.model.insertBuild({
-      type: 'tag-build',
-      branch: tag,
-      component,
-      org,
-      commit: sha,
-      sshUrl,
+      type: 'tag',
+      repository: sshUrl,
     });
     await this.coverageModel.insert({
       component,
@@ -291,14 +261,10 @@ class GithubApiRoute extends BaseApi {
         throw o;
       }
       const { body } = req;
-      const { commit='', sshUrl, component, org } = body;
+      const { sshUrl } = body;
       await this.model.insertBuild({
-        type: 'stage-build',
-        branch: 'stage',
-        component,
-        org,
-        commit,
-        sshUrl,
+        type: 'stage',
+        repository: sshUrl,
       });
       ack(res);
     } catch (e) {
@@ -336,14 +302,10 @@ class GithubApiRoute extends BaseApi {
       }
       ack(res);
       const { body } = req;
-      const { commit='', sshUrl, component, org } = body;
+      const { sshUrl } = body;
       this.model.insertBuild({
-        type: 'master-build',
-        branch: 'master',
-        component,
-        org,
-        commit,
-        sshUrl,
+        type: 'master',
+        repository: sshUrl,
       });
     } catch (e) {
       logging.error(e);
@@ -379,14 +341,10 @@ class GithubApiRoute extends BaseApi {
       }
       ack(res);
       const { body } = req;
-      const { commit, sshUrl, component, org, branch } = body;
+      const { sshUrl } = body;
       this.model.insertBuild({
-        type: 'tag-build',
-        branch: branch || 'master',
-        component,
-        org,
-        commit,
-        sshUrl,
+        type: 'tag',
+        repository: sshUrl,
       });
     } catch (e) {
       logging.error(e);

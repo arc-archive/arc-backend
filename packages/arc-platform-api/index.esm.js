@@ -1,4 +1,4 @@
-// Copyright 2019, Mulesoft.
+// Copyright 2019, MuleSoft.
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -17,13 +17,13 @@ import express from 'express';
 import session from 'express-session';
 import connectMemCached from 'connect-memcached';
 import passport from 'passport';
-import { default as config, ckeckApiConfig } from '@advanced-rest-client/backend-config';
+import { default as config, checkApiConfig } from '@advanced-rest-client/backend-config';
 import logging from '@advanced-rest-client/arc-platform-logger';
 import { router as Oauth2router } from './lib/oauth2.js';
 import CiRoute from './api/CiRoute.js';
 import ArcApiRoute from './api/ArcApiRoute.js';
 
-ckeckApiConfig();
+checkApiConfig();
 
 const IS_PRODUCTION = config.get('NODE_ENV') === 'production';
 
@@ -35,6 +35,7 @@ if (IS_PRODUCTION) {
 const MemcachedStore = connectMemCached(session);
 const app = express();
 export default app;
+
 app.disable('etag');
 app.disable('x-powered-by');
 app.set('trust proxy', true);
@@ -76,8 +77,17 @@ app.use(logging.errorLogger);
 app.use((req, res) => {
   res.status(404).send('Not Found');
 });
+
+let serverResolve;
+export const serverStartPromise = new Promise((resolve) => {
+  serverResolve = resolve;
+});
+
 const server = app.listen(config.get('PORT'), () => {
   // @ts-ignore
   const { port } = server.address();
   logging.info(`App listening on port ${port}`);
+  serverResolve();
 });
+
+export { server };

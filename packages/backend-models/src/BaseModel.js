@@ -139,7 +139,7 @@ export class BaseModel {
    * @return {string} The namespace value for builds
    */
   get buildsNamespace() {
-    return 'api-components-builds';
+    return 'apic-github-builds';
   }
 
   /**
@@ -160,7 +160,7 @@ export class BaseModel {
   }
 
   /**
-   * Translates from Datastore's entity format to
+   * Translates from a datastore entity format to
    * the format expected by the application.
    *
    * Datastore format:

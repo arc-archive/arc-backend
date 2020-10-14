@@ -8,14 +8,14 @@ export declare function checkConfig(setting: string): void;
 /**
  * To be called by API app.
  */
-export function ckeckApiConfig(): void;
+export function checkApiConfig(): void;
 
 /**
  * To be called by GitHub integration app.
  */
-export function ckeckGitHubConfig(): void;
+export function checkGitHubConfig(): void;
 
 /**
  * To be called by GitHub integration app.
  */
-export function ckeckTestsConfig(): void;
+export function checkTestsConfig(): void;

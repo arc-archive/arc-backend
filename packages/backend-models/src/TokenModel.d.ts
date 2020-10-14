@@ -2,7 +2,7 @@ import { BaseModel, Entity, QueryResult, QueryOptions } from './BaseModel.js';
 import { UserEntity } from './UserModel';
 
 /**
- * Token information struct after decoding it from the token string.
+ * Token information structure after decoding it from the token string.
  */
 export declare interface TokenInfo {
   /**
@@ -65,6 +65,10 @@ export declare interface TokenEntity extends EditableToken, Entity {
    * Whether or not the token was revoked by the owner.
    */
   revoked: boolean;
+  /**
+   * Whether the token is expired.
+   */
+  expired?: boolean;
 }
 
 export declare interface TokenQueryResult extends QueryResult<TokenEntity> {}

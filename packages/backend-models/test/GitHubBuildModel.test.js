@@ -1,13 +1,13 @@
 import Emulator from 'google-datastore-emulator';
 import { assert } from 'chai';
 import Chance from 'chance';
-import { ComponentBuildModel } from '../src/ComponentBuildModel.js';
+import { GitHubBuildModel } from '../index.js';
 
-/** @typedef {import('../src/ComponentBuildModel').EditableComponentBuildEntity} EditableComponentBuildEntity */
+/** @typedef {import('../src/types/GitHubBuild').GithubBuildEntity} GithubBuildEntity */
 
 const chance = new Chance();
 
-describe('ComponentBuildModel', () => {
+describe('GitHubBuildModel', () => {
   process.env.GCLOUD_PROJECT = 'advancedrestclient-1155';
   let emulator;
   before(async () => {
@@ -20,16 +20,19 @@ describe('ComponentBuildModel', () => {
 
   describe('constructor()', () => {
     it('sets namespace', () => {
-      const model = new ComponentBuildModel();
-      assert.equal(model.namespace, 'api-components-builds');
+      const model = new GitHubBuildModel();
+      assert.equal(model.namespace, 'apic-github-builds');
     });
   });
+
+  const typesEnum = ['stage', 'master', 'tag'];
+  // const statusEnum = ['queued', 'running', 'finished'];
 
   /**
    * @return {Promise<void>}
    */
   async function emptyEntities() {
-    const model = new ComponentBuildModel();
+    const model = new GitHubBuildModel();
     const query = model.store.createQuery(model.namespace, model.buildKind);
     const [entities] = await model.store.runQuery(query);
     if (!entities.length) {
@@ -40,34 +43,31 @@ describe('ComponentBuildModel', () => {
   }
 
   /**
-   * @return {EditableComponentBuildEntity}
+   * @return {GithubBuildEntity}
    */
   function generateEntity() {
+    const typeIndex = chance.pickone([0, 1, 2]);
     return {
-      type: chance.word(),
-      branch: chance.word(),
-      component: chance.word(),
-      commit: chance.word(),
-      sshUrl: chance.word(),
-      org: chance.word(),
-      bumpVersion: chance.bool(),
+      // @ts-ignore
+      type: typesEnum[typeIndex],
+      repository: chance.url(),
     };
   }
 
   /**
    * @param {number} sample
-   * @return {Promise<object>}
+   * @return {Promise<GithubBuildEntity[]>}
    */
   async function populateEntities(sample=10) {
-    const model = new ComponentBuildModel();
+    const model = new GitHubBuildModel();
     const promises = Array(sample).fill(0).map(() => model.insertBuild(generateEntity()));
     return Promise.all(promises);
   }
 
   describe('insertBuild()', () => {
-    let model = new ComponentBuildModel();
+    let model = /** @type GitHubBuildModel */ (null);
     before(() => {
-      model = new ComponentBuildModel();
+      model = new GitHubBuildModel();
     });
 
     after(() => emptyEntities());
@@ -78,26 +78,19 @@ describe('ComponentBuildModel', () => {
       assert.typeOf(result.id, 'string', 'has an id of created object');
     });
 
-    it('creates mesage has created property', async () => {
+    it('creates message has created property', async () => {
       const result = await model.insertBuild(generateEntity());
       assert.typeOf(result.created, 'number');
-    });
-
-    it('inserts mesage without bumpVersion', async () => {
-      const item = generateEntity();
-      delete item.bumpVersion;
-      const result = await model.insertBuild(item);
-      assert.isUndefined(result.bumpVersion);
     });
   });
 
   describe('list()', () => {
-    let model = new ComponentBuildModel();
-    let generated;
+    let model = /** @type GitHubBuildModel */ (null);
+    let generated = /** @type GithubBuildEntity[] */ (null);
     before(async () => {
       generated = await populateEntities();
       assert.lengthOf(generated, 10);
-      model = new ComponentBuildModel();
+      model = new GitHubBuildModel();
     });
 
     after(() => emptyEntities());
@@ -134,22 +127,22 @@ describe('ComponentBuildModel', () => {
   });
 
   describe('get()', () => {
-    let model = new ComponentBuildModel();
-    let generated;
+    let model = /** @type GitHubBuildModel */ (null);
+    let generated = /** @type GithubBuildEntity[] */ (null);
     before(async () => {
       generated = await populateEntities(2);
       assert.lengthOf(generated, 2);
-      model = new ComponentBuildModel();
+      model = new GitHubBuildModel();
     });
 
     after(() => emptyEntities());
 
-    it('reads existing test', async () => {
+    it('reads the existing build', async () => {
       const result = await model.get(generated[0].id);
       assert.equal(result.id, generated[0].id);
     });
 
-    it('reads other test', async () => {
+    it('reads the other build', async () => {
       const result = await model.get(generated[1].id);
       assert.equal(result.id, generated[1].id);
     });
@@ -166,12 +159,12 @@ describe('ComponentBuildModel', () => {
   });
 
   describe('delete()', () => {
-    let model = new ComponentBuildModel();
-    let generated;
+    let model = /** @type GitHubBuildModel */ (null);
+    let generated = /** @type GithubBuildEntity[] */ (null);
     before(async () => {
       generated = await populateEntities();
       assert.lengthOf(generated, 10);
-      model = new ComponentBuildModel();
+      model = new GitHubBuildModel();
     });
 
     after(() => emptyEntities());
@@ -184,12 +177,12 @@ describe('ComponentBuildModel', () => {
   });
 
   describe('startBuild()', () => {
-    let model = new ComponentBuildModel();
-    let generated;
+    let model = /** @type GitHubBuildModel */ (null);
+    let generated = /** @type GithubBuildEntity[] */ (null);
     before(async () => {
       generated = await populateEntities(2);
       assert.lengthOf(generated, 2);
-      model = new ComponentBuildModel();
+      model = new GitHubBuildModel();
     });
 
     after(() => emptyEntities());
@@ -210,12 +203,12 @@ describe('ComponentBuildModel', () => {
   });
 
   describe('restartBuild()', () => {
-    let model = new ComponentBuildModel();
-    let generated;
+    let model = /** @type GitHubBuildModel */ (null);
+    let generated = /** @type GithubBuildEntity[] */ (null);
     before(async () => {
       generated = await populateEntities(2);
       assert.lengthOf(generated, 2);
-      model = new ComponentBuildModel();
+      model = new GitHubBuildModel();
     });
 
     after(() => emptyEntities());
@@ -224,7 +217,7 @@ describe('ComponentBuildModel', () => {
       const { id } = generated[0];
       await model.restartBuild(id);
       const result = await model.get(id);
-      assert.equal(result.endTime, 0);
+      assert.equal(result.ended, 0);
       assert.equal(result.message, '');
       assert.isFalse(result.error);
     });
@@ -235,22 +228,22 @@ describe('ComponentBuildModel', () => {
       const result = await model.get(generated[1].id);
       assert.isUndefined(result.error);
       assert.isUndefined(result.message);
-      assert.isUndefined(result.endTime);
+      assert.isUndefined(result.ended);
     });
   });
 
   describe('setBuildError()', () => {
-    let model = new ComponentBuildModel();
-    let generated;
+    let model = /** @type GitHubBuildModel */ (null);
+    let generated = /** @type GithubBuildEntity[] */ (null);
     before(async () => {
       generated = await populateEntities(2);
       assert.lengthOf(generated, 2);
-      model = new ComponentBuildModel();
+      model = new GitHubBuildModel();
     });
 
     after(() => emptyEntities());
 
-    it('sets status proprty', async () => {
+    it('sets status property', async () => {
       const { id } = generated[0];
       await model.setBuildError(id, 'test');
       const result = await model.get(id);
@@ -268,7 +261,7 @@ describe('ComponentBuildModel', () => {
       const { id } = generated[0];
       await model.setBuildError(id, 'test');
       const result = await model.get(id);
-      assert.typeOf(result.endTime, 'number');
+      assert.typeOf(result.ended, 'number');
     });
 
     it('sets error property', async () => {
@@ -280,17 +273,17 @@ describe('ComponentBuildModel', () => {
   });
 
   describe('finishBuild()', () => {
-    let model = new ComponentBuildModel();
-    let generated;
+    let model = /** @type GitHubBuildModel */ (null);
+    let generated = /** @type GithubBuildEntity[] */ (null);
     before(async () => {
       generated = await populateEntities(2);
       assert.lengthOf(generated, 2);
-      model = new ComponentBuildModel();
+      model = new GitHubBuildModel();
     });
 
     after(() => emptyEntities());
 
-    it('sets status proprty', async () => {
+    it('sets status property', async () => {
       const { id } = generated[0];
       await model.finishBuild(id);
       const result = await model.get(id);
@@ -308,7 +301,7 @@ describe('ComponentBuildModel', () => {
       const { id } = generated[0];
       await model.finishBuild(id);
       const result = await model.get(id);
-      assert.typeOf(result.endTime, 'number');
+      assert.typeOf(result.ended, 'number');
     });
   });
 });

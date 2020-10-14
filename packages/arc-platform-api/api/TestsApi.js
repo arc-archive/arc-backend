@@ -8,6 +8,7 @@ import { BaseApi } from './BaseApi.js';
 
 /** @typedef {import('./BaseApi').SessionRequest} Request */
 /** @typedef {import('express').Response} Response */
+/** @typedef {import('@advanced-rest-client/backend-models').EditableTestEntity} EditableTestEntity */
 
 const router = express.Router();
 export default router;
@@ -28,7 +29,7 @@ class TestApiRoute extends BaseApi {
   }
 
   /**
-   * Validates parameteres for test creation
+   * Validates parameters for test creation
    * @param {Request} req
    * @return {string|undefined} Error message or undefined if valid.
    */
@@ -69,7 +70,7 @@ class TestApiRoute extends BaseApi {
 
   /**
    * Inserts a new test request to the data store.
-   * The test is scheduled to be executed in the duture.
+   * The test is scheduled to be executed in the future.
    * The model informs the worker about new work using Pub/Sub system.
    * @param {Request} req
    * @param {Response} res
@@ -85,14 +86,14 @@ class TestApiRoute extends BaseApi {
       }
       // @ts-ignore
       const { body, user } = req;
-      const info = {
+      const info = /** @type EditableTestEntity */ ({
         branch: body.branch,
         type: body.type,
         creator: {
           id: user.id,
           displayName: user.displayName || '',
         },
-      };
+      });
       if (body.purpose) {
         info.purpose = validator.escape(body.purpose);
       }
@@ -100,15 +101,18 @@ class TestApiRoute extends BaseApi {
         info.commit = body.commit;
       }
       if (body.component) {
+        // @ts-ignore
         info.component = body.component;
       }
       if (body.org) {
+        // @ts-ignore
         info.org = body.org;
       }
       if (body.includeDev) {
+        // @ts-ignore
         info.includeDev = body.includeDev;
       }
-      const id = await this.testModel.insertTest(info);
+      const id = await this.testModel.create(info);
       res.send({ id });
     } catch (cause) {
       logging.error(cause);
@@ -143,7 +147,7 @@ class TestApiRoute extends BaseApi {
     } catch (cause) {
       logging.error(cause);
       if (cause.code === 3) {
-        this.sendError(res, 'Inavlid pageToken parameter');
+        this.sendError(res, 'Invalid pageToken parameter');
         return;
       }
       this.sendError(res, cause.message, 500);
@@ -159,7 +163,7 @@ class TestApiRoute extends BaseApi {
   async getTest(req, res) {
     const { testId } = req.params;
     try {
-      const resource = await this.testModel.getTest(testId);
+      const resource = await this.testModel.get(testId);
       if (resource) {
         res.send(resource);
       } else {
@@ -181,7 +185,7 @@ class TestApiRoute extends BaseApi {
     const { testId } = req.params;
     try {
       await this.ensureAccess(req, 'delete-test');
-      const resource = await this.testModel.getTest(testId);
+      const resource = await this.testModel.get(testId);
       if (!resource) {
         const o = {
           message: 'Test not found',
@@ -189,7 +193,7 @@ class TestApiRoute extends BaseApi {
         };
         throw o;
       }
-      await this.testModel.deleteTest(testId);
+      await this.testModel.delete(testId);
       res.sendStatus(204).end();
     } catch (cause) {
       logging.error(cause);
@@ -242,7 +246,7 @@ class TestApiRoute extends BaseApi {
     } catch (cause) {
       logging.error(cause);
       if (cause.code === 3) {
-        this.sendError(res, 'Inavlid pageToken parameter');
+        this.sendError(res, 'Invalid pageToken parameter');
         return;
       }
       this.sendError(res, cause.message, 500);
@@ -296,7 +300,7 @@ class TestApiRoute extends BaseApi {
     } catch (cause) {
       logging.error(cause);
       if (cause.code === 3) {
-        this.sendError(res, 'Inavlid pageToken parameter');
+        this.sendError(res, 'Invalid pageToken parameter');
         return;
       }
       this.sendError(res, cause.message, 500);

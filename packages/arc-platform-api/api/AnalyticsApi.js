@@ -30,7 +30,7 @@ class AnalyticsRoute extends BaseApi {
   }
 
   /**
-   * @construcotr
+   * @constructor
    */
   constructor() {
     super();
@@ -111,8 +111,8 @@ class AnalyticsRoute extends BaseApi {
     }
 
     endCalendar.setDate(endCalendar.getDate() + 1); // midnight next day
-    // substract one millisecond to have last millisecond of
-    // the last daty of date range
+    // subtract one millisecond to have last millisecond of
+    // the last day of date range
     endCalendar.setMilliseconds(-1);
     if (today.getTime() <= endCalendar.getTime()) {
       let message = 'The date end range must be before today. Date range ends ';
@@ -268,7 +268,7 @@ class AnalyticsRoute extends BaseApi {
   }
 
   /**
-   * Rocords a session from ARC app.
+   * Records a session from ARC app.
    * @param {Request} req
    * @param {Response} res
    * @return {Promise<void>}
