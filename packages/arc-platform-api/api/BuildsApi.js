@@ -1,10 +1,10 @@
 import express from 'express';
 import { GitHubBuildModel } from '@advanced-rest-client/backend-models';
 import logging from '@advanced-rest-client/arc-platform-logger';
-// import background from '../lib/background.js';
+import background from '../lib/Background.js';
 import { BaseApi } from './BaseApi.js';
 
-/** @typedef {import('./BaseApi').SessionRequest} Request */
+/** @typedef {import('../types').SessionRequest} Request */
 /** @typedef {import('express').Response} Response */
 
 const router = express.Router();
@@ -86,7 +86,7 @@ class BuildsApiRoute extends BaseApi {
       await this.ensureAccess(req, 'restart-build');
       const model = new GitHubBuildModel();
       await model.restartBuild(id);
-      // background.queueStageBuild(id);
+      background.queueStageBuild(id);
       res.sendStatus(201).end();
     } catch (cause) {
       // logging.error(cause);

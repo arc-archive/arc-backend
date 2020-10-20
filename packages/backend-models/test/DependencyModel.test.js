@@ -1,5 +1,6 @@
 import Emulator from 'google-datastore-emulator';
-import { assert } from 'chai';
+import pkg from 'chai';
+const { assert } = pkg;
 import { DependencyModel } from '../index.js';
 import DataHelper from './DataHelper.js';
 
@@ -117,7 +118,7 @@ describe('DependencyModel', () => {
     let created;
     before(async () => {
       const m = new DependencyModel();
-      created = await DataHelper.populateDepenenciesEntities(m, 2);
+      created = await DataHelper.populateDependenciesEntities(m, 2);
     });
 
     after(async () => {
@@ -144,7 +145,7 @@ describe('DependencyModel', () => {
     let created;
     before(async () => {
       const m = new DependencyModel();
-      created = await DataHelper.populateDepenenciesEntities(m);
+      created = await DataHelper.populateDependenciesEntities(m);
     });
 
     after(async () => {
@@ -165,13 +166,13 @@ describe('DependencyModel', () => {
       assert.isTrue(entity.production);
     });
 
-    it('adds development dependnecies', async () => {
+    it('adds development dependencies', async () => {
       const item = await model.get(created[0]);
       const result = await model.listParentComponents(item.pkg, true);
       assert.lengthOf(result, 2);
     });
 
-    it('adds "development" to dev dependnecies', async () => {
+    it('adds "development" to dev dependencies', async () => {
       const item = await model.get(created[0]);
       const result = await model.listParentComponents(item.pkg, true);
       assert.isTrue(result[1].development);
@@ -187,7 +188,7 @@ describe('DependencyModel', () => {
     let created;
     before(async () => {
       const m = new DependencyModel();
-      created = await DataHelper.populateDepenenciesEntities(m);
+      created = await DataHelper.populateDependenciesEntities(m);
     });
 
     after(async () => {
@@ -201,7 +202,7 @@ describe('DependencyModel', () => {
       assert.lengthOf(result, 1, 'has a parent');
     });
 
-    it('adds "development" to dev dependnecies', async () => {
+    it('adds "development" to dev dependencies', async () => {
       const item = await model.get(created[0]);
       const result = await model.listDevParentComponents(item.pkg);
       assert.isTrue(result[0].development);

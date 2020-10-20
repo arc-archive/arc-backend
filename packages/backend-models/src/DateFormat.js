@@ -67,4 +67,11 @@ class DateFormat {
 
 const formatter = new DateFormat();
 
+/**
+ * Formats the date
+ *
+ * @param {Date} dt The Date object
+ * @param {string} format Format to apply
+ * @return {string}
+ */
 export default (dt, format) => formatter.format(dt, format);

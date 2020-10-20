@@ -1,5 +1,5 @@
 import semver from 'semver';
-import uuidv4 from '@advanced-rest-client/uuid-generator/src/v4.js';
+import uuidV4 from '@advanced-rest-client/uuid-generator/src/v4.js';
 import { BaseModel } from './BaseModel.js';
 
 /** @typedef {import('@google-cloud/datastore/build/src/entity').entity.Key} Key */
@@ -85,7 +85,7 @@ export class CoverageModel extends BaseModel {
    */
   async insert(info) {
     const now = Date.now();
-    const keyName = uuidv4();
+    const keyName = uuidV4();
     const key = this.createCoverageRunKey(keyName);
     const { branch='master', component, org, tag } = info;
     const insert = /** @type EditableCoverageEntity */ ({
@@ -180,7 +180,7 @@ export class CoverageModel extends BaseModel {
   }
 
   /**
-   * Makrs tests as finished with the coverage results
+   * Marks tests as finished with the coverage results
    * @param {string} runId The id of the coverage run
    * @param {CoverageResult} coverage Coverage results
    * @return {Promise<void>}
@@ -243,7 +243,7 @@ export class CoverageModel extends BaseModel {
     const { details } = report;
     const { component, tag, org } = item;
     details.forEach((detail) => {
-      const { file = uuidv4(), title, functions, lines, branches, coverage } = detail;
+      const { file = uuidV4(), title, functions, lines, branches, coverage } = detail;
       // file here has a default value just in case Karma decided not to report this.
       const key = this.createComponentVersionFileCoverageKey(component, org, tag, file);
       transaction.save({
@@ -280,7 +280,7 @@ export class CoverageModel extends BaseModel {
    * Queries for coverage results for each file in the run.
    * @param {string} runId The ID of the test run
    * @param {CoverageFilesQueryOptions=} opts Query options
-   * @return {Promise<QueryResult>} List of enties to return.
+   * @return {Promise<QueryResult>} A list of entities to return.
    */
   async queryRunFiles(runId, opts={}) {
     const runModel = await this.get(runId);

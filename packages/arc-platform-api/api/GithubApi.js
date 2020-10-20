@@ -6,8 +6,9 @@ import config from '@advanced-rest-client/backend-config';
 import { GitHubBuildModel, CoverageModel } from '@advanced-rest-client/backend-models';
 import logging from '@advanced-rest-client/arc-platform-logger';
 import { BaseApi } from './BaseApi.js';
+import background from '../lib/Background.js';
 
-/** @typedef {import('./BaseApi').SessionRequest} Request */
+/** @typedef {import('../types').SessionRequest} Request */
 /** @typedef {import('express').Response} Response */
 
 const router = express.Router();
@@ -196,10 +197,11 @@ class GithubApiRoute extends BaseApi {
    */
   async scheduleStageBuild(body) {
     const sshUrl = body.repository.ssh_url;
-    await this.model.insertBuild({
+    const result = await this.model.insertBuild({
       type: 'stage',
       repository: sshUrl,
     });
+    background.queueStageBuild(result.id);
   }
 
   /**
@@ -271,7 +273,7 @@ class GithubApiRoute extends BaseApi {
       logging.error(e);
       // eslint-disable-next-line no-console
       console.error(e);
-      const status = e.status || 500;
+      const status = e.code || 500;
       this.sendError(res, e.message, status);
     }
   }
@@ -309,7 +311,7 @@ class GithubApiRoute extends BaseApi {
       });
     } catch (e) {
       logging.error(e);
-      const status = e.status || 500;
+      const status = e.code || 500;
       this.sendError(res, e.message, status);
     }
   }
@@ -348,7 +350,7 @@ class GithubApiRoute extends BaseApi {
       });
     } catch (e) {
       logging.error(e);
-      const status = e.status || 500;
+      const status = e.code || 500;
       this.sendError(res, e.message, status);
     }
   }

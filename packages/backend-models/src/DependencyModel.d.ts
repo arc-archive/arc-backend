@@ -30,7 +30,7 @@ export declare interface DependencyEntity extends DependencyEntry, Entity {
    */
   development?: boolean;
   /**
-   * Added to the quesy result, marks items that are production depenmdencies
+   * Added to the query result, marks items that are production dependencies
    */
   production?: boolean;
 }
@@ -59,14 +59,14 @@ export class DependencyModel extends BaseModel {
   set(entry: DependencyEntry): Promise<string>;
 
   /**
-   * Lists dependncies that would be a parent for a component.
+   * Lists dependencies that would be a parent for a component.
    * @param dependency The component name
    * @param includeDev Whether or not to include dev dependencies in the query
    */
   listParentComponents(dependency: string, includeDev?: boolean): Promise<DependencyEntity[]>;
 
   /**
-   * Lists dev dependncies that would be a parent for a component.
+   * Lists dev dependencies that would be a parent for a component.
    * @param dependency The component name
    */
   listDevParentComponents(dependency: string): Promise<DependencyEntity[]>;

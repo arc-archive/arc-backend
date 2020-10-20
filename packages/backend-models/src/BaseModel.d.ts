@@ -137,7 +137,7 @@ export declare class BaseModel {
   slug(name: string): string;
 
   /**
-   * Translates from Datastore's entity format to
+   * Translates from Data store entity format to
    * the format expected by the application.
    *
    * Datastore format:

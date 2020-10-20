@@ -1,5 +1,5 @@
 import { BaseModel } from './BaseModel.js';
-import uuidv4 from '@advanced-rest-client/uuid-generator/src/v4.js';
+import uuidV4 from '@advanced-rest-client/uuid-generator/src/v4.js';
 
 /** @typedef {import('./TokenModel').TokenEntity} TokenEntity */
 /** @typedef {import('@google-cloud/datastore/build/src/entity').entity.Key} Key */
@@ -35,7 +35,7 @@ export class TokenModel extends BaseModel {
    * @return {Promise<TokenEntity>} Promise resolved to the token object.
    */
   async create(user, tokenInfo, token, name) {
-    const id = uuidv4();
+    const id = uuidV4();
     const key = this.createUserTokenKey(user.id, id);
 
     const results = [

@@ -1,49 +1,8 @@
 import { BaseModel, Entity, QueryResult, QueryOptions } from './BaseModel.js';
-import { TestReport } from './TestReport';
+import { TestReport } from './types/TestReport';
 import { entity } from '@google-cloud/datastore/build/src/entity';
 import { Transaction } from '@google-cloud/datastore';
-import { Creator } from './Creator';
-
-export declare interface BaseTestEntity {
-  /**
-   * The type of the test to perform.
-   * `bottom-up` or `amf-build`.
-   */
-  type: string;
-  /**
-   * A person or system that created the test.
-   */
-  creator: Creator;
-  /**
-   * The purpose of the test
-   */
-  purpose?: string;
-}
-
-export declare interface EditableBottomUpEntity extends BaseTestEntity {
-  /**
-   * SHA commit to checkout
-   */
-  commit?: string;
-  /**
-   * The branch of the component to checkout when performing the test.
-   */
-  branch: string;
-  /**
-   * Name of the component that is a base for the bottom-up tests.
-   * Not used for `amf-build` tests
-   */
-  component?: string;
-  /**
-   * Name of the component's organization
-   * Not used for `amf-build` tests
-   */
-  org?: string;
-  /**
-   * Whether the bottom up test should include tests
-   */
-  includeDev?: boolean;
-}
+import { TestQueryResult, TestQueryOptions, AmfTest, BottomUpTest, AmfTestEntity, BottomUpTestEntity } from './types/ComponentTest';
 
 declare interface TestInternalEntity {
   error: boolean;
@@ -56,29 +15,6 @@ declare interface TestInternalEntity {
   size: number;
   created: number;
 }
-
-export declare interface BottomUpEntity extends EditableBottomUpEntity, TestInternalEntity, Entity {
-
-}
-
-export declare interface EditableAmfBuildEntity extends BaseTestEntity {
-  /**
-   * SHA commit to of the AMF library to checkout
-   */
-  commit?: string;
-  /**
-   * The branch of the AMF library to checkout when performing the test.
-   */
-  branch: string;
-}
-export declare interface AmfBuildEntity extends EditableAmfBuildEntity, TestInternalEntity, Entity {}
-
-export declare type TestEntity = AmfBuildEntity | BottomUpEntity;
-export declare type EditableTestEntity = EditableAmfBuildEntity | EditableBottomUpEntity;
-
-export declare interface TestQueryResult extends QueryResult<TestEntity> {}
-
-export declare interface TestQueryOptions extends QueryOptions {}
 
 /**
  * A model for catalog items.
@@ -101,10 +37,28 @@ export class TestModel extends BaseModel {
    * Insets a test to the data store.
    * NOTE, it won't schedule a test in the corresponding background application.
    *
-   * @param {EditableTestEntity} info Entity description
-   * @return {Promise<string>} The key value of the generated identifier for the entity
+   * @param info Entity description
+   * @return The key value of the generated identifier for the entity
    */
-  create(info: EditableTestEntity): Promise<string>;
+  create(info: AmfTest|BottomUpTest): Promise<string>;
+
+  /**
+   * Insets a test to the data store.
+   * NOTE, it won't schedule a test in the corresponding background application.
+   *
+   * @param info Entity description
+   * @returns The key value of the generated identifier for the entity
+   */
+  insertBottomUp(info: BottomUpTest): Promise<string>;
+
+  /**
+   * Insets a test to the data store.
+   * NOTE, it won't schedule a test in the corresponding background application.
+   *
+   * @param info Entity description
+   * @returns The key value of the generated identifier for the entity
+   */
+  insertAmf(info: AmfTest): Promise<string>;
 
   /**
    * Resets test state.
@@ -118,7 +72,7 @@ export class TestModel extends BaseModel {
    * Gets test definition from the store.
    * @param id The ID of the test.
    */
-  get(id: string): Promise<TestEntity|null>;
+  get(id: string): Promise<AmfTestEntity|BottomUpTestEntity|null>;
 
   /**
    * Gets test definition from the store.

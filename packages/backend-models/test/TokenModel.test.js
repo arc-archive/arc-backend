@@ -1,5 +1,6 @@
 import Emulator from 'google-datastore-emulator';
-import { assert } from 'chai';
+import pkg from 'chai';
+const { assert } = pkg;
 import { TokenModel } from '../index.js';
 import DataHelper from './DataHelper.js';
 

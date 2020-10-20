@@ -50,6 +50,7 @@ const sessionConfig = {
 
 const memUrl = config.get('MEMCACHE_URL');
 if (IS_PRODUCTION && memUrl) {
+  // @ts-ignore
   sessionConfig.store = new MemcachedStore({
     hosts: [memUrl],
   });

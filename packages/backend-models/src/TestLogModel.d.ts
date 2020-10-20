@@ -1,5 +1,5 @@
 import { BaseModel, QueryResult, QueryOptions, Entity } from './BaseModel';
-import { TestBrowserResult } from './TestReport';
+import { TestBrowserResult } from './types/TestReport';
 
 export declare interface TestLogEntity extends TestBrowserResult, Entity {}
 
@@ -8,13 +8,13 @@ export declare interface TestLogQueryResult extends QueryResult<TestLogEntity> {
 export declare interface TestLogQueryOptions extends QueryOptions {}
 
 /**
- * A model for a componet test results in a single run.
+ * A model for a component test results in a single run.
  */
 export class TestLogModel extends BaseModel {
   constructor();
 
   /**
-   * Creates a browser identificator
+   * Creates a browser identification
    * @param {object} browser A Karma's browser definition.
    */
   _makeBrowserId(browser: TestBrowserResult): string;

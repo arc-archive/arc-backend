@@ -5,6 +5,7 @@
   "license": "Apache-2.0",
   "main": "index.js",
   "module": "index.js",
+  "type": "module",
   "keywords": [
     "arc-backend",
     "models",
@@ -37,7 +38,7 @@
     "slug": "^3.5.1"
   },
   "scripts": {
-    "test": "mocha test/*.test.js --require esm",
+    "test": "mocha test/*.test.js",
     "test:coverage": "nyc --reporter=html --reporter=lcovonly --reporter=text-summary --check-coverage --include='src/**/*.js' --exclude='**/*.test.js' --require esm mocha test/*.test.js"
   },
   "devDependencies": {

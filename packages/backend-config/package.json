@@ -1,10 +1,11 @@
 {
   "name": "@advanced-rest-client/backend-config",
-  "description": "Configuration module for backend apps runing on GKE.",
+  "description": "Configuration module for backend apps running on GKE.",
   "version": "0.1.0",
   "license": "Apache-2.0",
   "main": "index.js",
   "module": "index.js",
+  "type": "module",
   "keywords": [
     "arc-backend",
     "configuration",
@@ -27,7 +28,7 @@
   },
   "scripts": {
     "test": "npm run test:node",
-    "test:node": "mocha test/*.test.js --require esm --timeout 90000",
+    "test:node": "mocha test/*.test.cjs --timeout 90000",
     "test:coverage": "nyc --reporter=lcov --reporter=text-summary npm run test",
     "test:watch": "npm run test:node -- --watch"
   },

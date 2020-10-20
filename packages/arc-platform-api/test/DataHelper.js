@@ -1,32 +1,32 @@
 import Chance from 'chance';
 import jwt from 'jsonwebtoken';
 
-/** @typedef {import('../src/BaseModel').BaseModel} BaseModel */
-/** @typedef {import('@google-cloud/datastore/build/src/entity').entity.Key} Key */
+/** @typedef {import('@advanced-rest-client/backend-models').BaseModel} BaseModel */
+/** @typedef {import('@advanced-rest-client/backend-models').entity.Key} Key */
 /** @typedef {import('./DataHelper').ComponentInsertOptions} ComponentInsertOptions */
 /** @typedef {import('./DataHelper').ComponentInsertResult} ComponentInsertResult */
 /** @typedef {import('./DataHelper').CreateComponentVersionResult} CreateComponentVersionResult */
-/** @typedef {import('../src/CoverageModel').EditableCoverageEntity} EditableCoverageEntity */
-/** @typedef {import('../src/CoverageModel').CoverageModel} CoverageModel */
-/** @typedef {import('../src/CoverageModel').CoverageEntity} CoverageEntity */
-/** @typedef {import('../src/CoverageModel').CoverageResult} CoverageResult */
-/** @typedef {import('../src/CoverageModel').CoverageSummaryResult} CoverageSummaryResult */
-/** @typedef {import('../src/CoverageModel').CoverageReport} CoverageReport */
-/** @typedef {import('../src/CoverageModel').CoverageFileResult} CoverageFileResult */
-/** @typedef {import('../src/DependencyModel').DependencyEntry} DependencyEntry */
-/** @typedef {import('../src/DependencyModel').DependencyModel} DependencyModel */
-/** @typedef {import('../src/types/TestReport').TestReport} TestReport */
-/** @typedef {import('../src/types/TestReport').TestBrowserResult} TestBrowserResult */
-/** @typedef {import('../src/TestComponentModel').TestComponentModel} TestComponentModel */
-/** @typedef {import('../src/types/ComponentTest').AmfTest} AmfTest */
-/** @typedef {import('../src/types/ComponentTest').BottomUpTest} BottomUpTest */
-/** @typedef {import('../src/TestModel').TestModel} TestModel */
-/** @typedef {import('../src/UserModel').UserEntity} UserEntity */
-/** @typedef {import('../src/types/PassportProfile').PassportProfile} PassportProfile */
-/** @typedef {import('../src/TokenModel').EditableToken} EditableToken */
-/** @typedef {import('../src/TokenModel').TokenEntity} TokenEntity */
-/** @typedef {import('../src/TokenModel').TokenInfo} TokenInfo */
-/** @typedef {import('../src/TokenModel').TokenModel} TokenModel */
+/** @typedef {import('@advanced-rest-client/backend-models').EditableCoverageEntity} EditableCoverageEntity */
+/** @typedef {import('@advanced-rest-client/backend-models').CoverageModel} CoverageModel */
+/** @typedef {import('@advanced-rest-client/backend-models').CoverageEntity} CoverageEntity */
+/** @typedef {import('@advanced-rest-client/backend-models').CoverageResult} CoverageResult */
+/** @typedef {import('@advanced-rest-client/backend-models').CoverageSummaryResult} CoverageSummaryResult */
+/** @typedef {import('@advanced-rest-client/backend-models').CoverageReport} CoverageReport */
+/** @typedef {import('@advanced-rest-client/backend-models').CoverageFileResult} CoverageFileResult */
+/** @typedef {import('@advanced-rest-client/backend-models').DependencyEntry} DependencyEntry */
+/** @typedef {import('@advanced-rest-client/backend-models').DependencyModel} DependencyModel */
+/** @typedef {import('@advanced-rest-client/backend-models').TestReport} TestReport */
+/** @typedef {import('@advanced-rest-client/backend-models').TestBrowserResult} TestBrowserResult */
+/** @typedef {import('@advanced-rest-client/backend-models').TestComponentModel} TestComponentModel */
+/** @typedef {import('@advanced-rest-client/backend-models').AmfTest} AmfTest */
+/** @typedef {import('@advanced-rest-client/backend-models').BottomUpTest} BottomUpTest */
+/** @typedef {import('@advanced-rest-client/backend-models').TestModel} TestModel */
+/** @typedef {import('@advanced-rest-client/backend-models').UserEntity} UserEntity */
+/** @typedef {import('@advanced-rest-client/backend-models').PassportProfile} PassportProfile */
+/** @typedef {import('@advanced-rest-client/backend-models').EditableToken} EditableToken */
+/** @typedef {import('@advanced-rest-client/backend-models').TokenEntity} TokenEntity */
+/** @typedef {import('@advanced-rest-client/backend-models').TokenInfo} TokenInfo */
+/** @typedef {import('@advanced-rest-client/backend-models').TokenModel} TokenModel */
 /** @typedef {import('./DataHelper').TokenCreateInfo} TokenCreateInfo */
 
 const chance = new Chance();

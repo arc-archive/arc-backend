@@ -29,4 +29,10 @@ declare class DateFormat {
   format(dt: Date, format: string): string;
 }
 
+/**
+ * Formats the date
+ *
+ * @param dt The Date object
+ * @param format Format to apply
+ */
 export default function(dt: Date, format: string): string;

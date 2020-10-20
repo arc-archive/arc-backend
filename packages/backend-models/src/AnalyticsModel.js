@@ -46,7 +46,7 @@ export class AnalyticsModel extends BaseModel {
    *
    * @param {string} applicationId Anonymized application ID.
    * @param {number} time A timestamp of the day of the user visit.
-   * @return {Promise<ActiveUser>} Promise will resolve when there's a user object or if one hyas been
+   * @return {Promise<ActiveUser>} Promise will resolve when there's a user object or if one has been
    * created.
    */
   async ensureUserRecord(applicationId, time) {
@@ -116,7 +116,7 @@ export class AnalyticsModel extends BaseModel {
    *
    * @param {string} applicationId Anonymized application ID.
    * @param {number} time A timestamp of the day of the user visit.
-   * @return {Promise<ActiveSessionCreateResult>} If true then new session wass created and false if session already
+   * @return {Promise<ActiveSessionCreateResult>} If true then new session was created and false if session already
    * existed in the datastore.
    */
   async ensureSession(applicationId, time) {
@@ -405,7 +405,7 @@ export class AnalyticsModel extends BaseModel {
     const [entities] = await this.store.runQuery(query);
     if (!entities || !entities.length) {
       return {
-        kind: 'ArcAnalytics#CutomRangeSessions',
+        kind: 'ArcAnalytics#CustomRangeSessions',
         items: [],
       };
     }
@@ -418,7 +418,7 @@ export class AnalyticsModel extends BaseModel {
       };
     });
     return {
-      kind: 'ArcAnalytics#CutomRangeSessions',
+      kind: 'ArcAnalytics#CustomRangeSessions',
       items,
     };
   }
@@ -436,7 +436,7 @@ export class AnalyticsModel extends BaseModel {
     const [entities] = await this.store.runQuery(query);
     if (!entities || !entities.length) {
       return {
-        kind: 'ArcAnalytics#CutomRangeUsers',
+        kind: 'ArcAnalytics#CustomRangeUsers',
         items: [],
       };
     }
@@ -449,7 +449,7 @@ export class AnalyticsModel extends BaseModel {
       };
     });
     return {
-      kind: 'ArcAnalytics#CutomRangeUsers',
+      kind: 'ArcAnalytics#CustomRangeUsers',
       items,
     };
   }

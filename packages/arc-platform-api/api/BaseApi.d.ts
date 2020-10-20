@@ -1,11 +1,5 @@
 import { TokenModel } from '@advanced-rest-client/backend-models';
 import { Response, Request, Router } from 'express';
-import { UserEntity } from '@advanced-rest-client/backend-models';
-
-export declare interface SessionRequest extends Request {
-  user?: UserEntity;
-}
-
 
 export declare interface QueryResult<T> {
   /**

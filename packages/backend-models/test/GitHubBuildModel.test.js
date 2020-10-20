@@ -1,5 +1,6 @@
 import Emulator from 'google-datastore-emulator';
-import { assert } from 'chai';
+import pkg from 'chai';
+const { assert } = pkg;
 import Chance from 'chance';
 import { GitHubBuildModel } from '../index.js';
 
@@ -147,14 +148,9 @@ describe('GitHubBuildModel', () => {
       assert.equal(result.id, generated[1].id);
     });
 
-    it('throws when not found', async () => {
-      let thrown = false;
-      try {
-        await model.get('other');
-      } catch (e) {
-        thrown = true;
-      }
-      assert.isTrue(thrown);
+    it('returns undefined when not found', async () => {
+      const result = await model.get('other');
+      assert.isUndefined(result);
     });
   });
 

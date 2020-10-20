@@ -6,7 +6,7 @@ import validator from 'validator';
 import { BaseApi } from './BaseApi.js';
 import { ClientError } from './Errors.js';
 
-/** @typedef {import('./BaseApi').SessionRequest} Request */
+/** @typedef {import('../types').SessionRequest} Request */
 /** @typedef {import('express').Response} Response */
 /** @typedef {import('@advanced-rest-client/backend-models').UserEntity} UserEntity */
 
@@ -55,7 +55,7 @@ class MeApiRoute extends BaseApi {
         }
       }
     } catch (e) {
-      const status = e.status || 500;
+      const status = e.code || 500;
       this.sendError(res, e.message, status);
     }
   }
@@ -100,7 +100,7 @@ class MeApiRoute extends BaseApi {
       });
       this.sendQueryResult(result, res);
     } catch (e) {
-      const status = e.status || 500;
+      const status = e.code || 500;
       this.sendError(res, e.message, status);
     }
   }
@@ -147,7 +147,7 @@ class MeApiRoute extends BaseApi {
       result.expired = false;
       res.send(result);
     } catch (cause) {
-      const status = cause.status || 500;
+      const status = cause.code || 500;
       this.sendError(res, cause.message, status);
     }
   }
@@ -178,7 +178,7 @@ class MeApiRoute extends BaseApi {
         this.sendError(res, 'Token not found', 404);
       }
     } catch (cause) {
-      const status = cause.status || 500;
+      const status = cause.code || 500;
       this.sendError(res, cause.message, status);
     }
   }
@@ -213,7 +213,7 @@ class MeApiRoute extends BaseApi {
         this.sendError(res, 'Token not found', 404);
       }
     } catch (cause) {
-      const status = cause.status || 500;
+      const status = cause.code || 500;
       this.sendError(res, cause.message, status);
     }
   }
@@ -248,7 +248,7 @@ class MeApiRoute extends BaseApi {
         this.sendError(res, 'Token not found', 404);
       }
     } catch (cause) {
-      const status = cause.status || 500;
+      const status = cause.code || 500;
       this.sendError(res, cause.message, status);
     }
   }

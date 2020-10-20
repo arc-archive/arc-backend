@@ -1,12 +1,12 @@
 import { BaseModel } from './BaseModel.js';
 
-/** @typedef {import('./TestReport').TestBrowserResult} TestBrowserResult */
+/** @typedef {import('./types/TestReport').TestBrowserResult} TestBrowserResult */
 /** @typedef {import('./TestLogModel').TestLogQueryOptions} TestLogQueryOptions */
 /** @typedef {import('./TestLogModel').TestLogQueryResult} TestLogQueryResult */
 /** @typedef {import('./TestLogModel').TestLogEntity} TestLogEntity */
 
 /**
- * A model for a componet test results in a single run.
+ * A model for a component test results in a single run.
  */
 export class TestLogModel extends BaseModel {
   /**
@@ -17,7 +17,7 @@ export class TestLogModel extends BaseModel {
   }
 
   /**
-   * Creates a browser identificator
+   * Creates a browser identification
    * @param {TestBrowserResult} browser A Karma's browser definition.
    * @return {string}
    */

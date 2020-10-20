@@ -1,4 +1,5 @@
-import { assert } from 'chai';
+import pkg from 'chai';
+const { assert } = pkg;
 import { Datastore } from '@google-cloud/datastore';
 import { BaseModel } from '../src/BaseModel.js';
 

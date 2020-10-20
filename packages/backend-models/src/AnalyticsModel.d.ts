@@ -83,8 +83,7 @@ export class AnalyticsModel extends BaseModel {
    *
    * @param applicationId Anonymized application ID.
    * @param time A timestamp of the day of the user visit.
-   * @returns Promise will resolve when there's a user object or if one hyas been
-   * created.
+   * @returns Promise will resolve when there's a user object or if one has been created.
    */
   ensureUserRecord(applicationId: string, time: number): Promise<ActiveUser>;
 
@@ -121,7 +120,7 @@ export class AnalyticsModel extends BaseModel {
    *
    * @param applicationId Anonymized application ID.
    * @param time A timestamp of the day of the user visit.
-   * @returns If true then new session wass created and false if session already
+   * @returns If true then new session was created and false if session already
    * existed in the datastore.
    */
   ensureSession(applicationId: string, time: number): Promise<ActiveSessionCreateResult>;

@@ -75,7 +75,7 @@ export class DependencyModel extends BaseModel {
   }
 
   /**
-   * Lists dependncies that would be a parent for a component.
+   * Lists dependencies that would be a parent for a component.
    * @param {string} dependency The component name
    * @param {boolean=} includeDev Whether or not to include dev dependencies in the query
    * @return {Promise<DependencyEntity[]>} [description]
@@ -102,7 +102,7 @@ export class DependencyModel extends BaseModel {
   }
 
   /**
-   * Lists dev dependncies that would be a parent for a component.
+   * Lists dev dependencies that would be a parent for a component.
    * @param {string} dependency The component name
    * @return {Promise<DependencyEntity[]>} [description]
    */

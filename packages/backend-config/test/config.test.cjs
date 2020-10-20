@@ -1,5 +1,8 @@
-import { assert } from 'chai';
+/* eslint-disable import/no-extraneous-dependencies */
+import chaiPkg from 'chai';
 import { default as config, checkApiConfig, checkGitHubConfig, checkTestsConfig } from '../index.js';
+
+const { assert } = chaiPkg;
 
 describe('backend-config', () => {
   describe('checkApiConfig()', () => {

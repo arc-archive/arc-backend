@@ -1,10 +1,13 @@
 import Emulator from 'google-datastore-emulator';
-import { assert } from 'chai';
+import pkg from 'chai';
+const { assert } = pkg;
 import { TestModel, TestLogModel, TestComponentModel } from '../index.js';
 import DataHelper from './DataHelper.js';
 
-/** @typedef {import('../src/TestModel').EditableTestEntity} EditableTestEntity */
-/** @typedef {import('../src/TestModel').TestEntity} TestEntity */
+/** @typedef {import('../src/types/ComponentTest').AmfTest} AmfTest */
+/** @typedef {import('../src/types/ComponentTest').BottomUpTest} BottomUpTest */
+/** @typedef {import('../src/types/ComponentTest').AmfTestEntity} AmfTestEntity */
+/** @typedef {import('../src/types/ComponentTest').BottomUpTestEntity} BottomUpTestEntity */
 
 describe('TestModel', () => {
   process.env.GCLOUD_PROJECT = 'advancedrestclient-1155';
@@ -20,7 +23,7 @@ describe('TestModel', () => {
   /**
    * @param {TestModel} model
    * @param {string} id
-   * @return {Promise<TestEntity>}
+   * @return {Promise<BottomUpTest|AmfTest>}
    */
   async function getEntry(model, id) {
     const key = model.createTestKey(id);
@@ -39,55 +42,161 @@ describe('TestModel', () => {
     });
 
     it('returns an id of created entity', async () => {
-      const info = DataHelper.generateEditableTestEntity();
+      const info = DataHelper.generateAmfTestEntity();
       const id = await model.create(info);
       assert.typeOf(id, 'string');
     });
 
-    it('creates an entity in the store', async () => {
-      const info = DataHelper.generateEditableTestEntity();
+    it('creates AMF entity in the store', async () => {
+      const info = DataHelper.generateAmfTestEntity();
       const id = await model.create(info);
       const result = await getEntry(model, id);
       assert.typeOf(result, 'object');
     });
 
-    [
-      ['type', 'string'],
-      ['branch', 'string'],
-      ['commit', 'string'],
-      ['purpose', 'string'],
-      ['component', 'string'],
-      ['org', 'string'],
-      ['includeDev', 'boolean'],
-    ].forEach(([property, type]) => {
-      it(`adds "${property}" property`, async () => {
-        const info = DataHelper.generateEditableTestEntity();
-        const id = await model.create(info);
-        const result = await getEntry(model, id);
-        assert.typeOf(result[property], type);
-        assert.equal(result[property], info[property]);
-      });
+    it('creates bottom-up entity in the store', async () => {
+      const info = DataHelper.generateBottomUpTestEntity();
+      const id = await model.create(info);
+      const result = await getEntry(model, id);
+      assert.typeOf(result, 'object');
+    });
+
+    it('throws when unknown type', async () => {
+      const info = DataHelper.generateBottomUpTestEntity();
+      // @ts-ignore
+      info.type = 'xyz';
+      let thrown = false;
+      try {
+        await model.create(info);
+      } catch (e) {
+        thrown = true;
+      }
+      assert.isTrue(thrown);
+    });
+  });
+
+  describe('insertBottomUp()', () => {
+    let model = /** @type TestModel */ (null);
+    beforeEach(() => {
+      model = new TestModel();
+    });
+
+    after(async () => {
+      await DataHelper.deleteEntities(model, model.testKind);
+    });
+
+    it('returns the id of the created entity', async () => {
+      const info = DataHelper.generateBottomUpTestEntity();
+      const id = await model.insertBottomUp(info);
+      assert.typeOf(id, 'string');
+    });
+
+    it('creates an entity in the store', async () => {
+      const info = DataHelper.generateBottomUpTestEntity();
+      const id = await model.insertBottomUp(info);
+      const result = await getEntry(model, id);
+      assert.typeOf(result, 'object');
+    });
+
+    it('adds "type" property', async () => {
+      const info = DataHelper.generateBottomUpTestEntity();
+      const id = await model.insertBottomUp(info);
+      const result = await getEntry(model, id);
+      assert.equal(result.type, 'bottom-up');
     });
 
     it('adds "created" property', async () => {
-      const info = DataHelper.generateEditableTestEntity();
-      const id = await model.create(info);
+      const info = DataHelper.generateBottomUpTestEntity();
+      const id = await model.insertBottomUp(info);
       const result = await getEntry(model, id);
       assert.typeOf(result.created, 'number');
     });
 
     it('adds "status" property', async () => {
-      const info = DataHelper.generateEditableTestEntity();
-      const id = await model.create(info);
+      const info = DataHelper.generateBottomUpTestEntity();
+      const id = await model.insertBottomUp(info);
       const result = await getEntry(model, id);
       assert.equal(result.status, 'queued');
     });
 
     it('adds "creator" property', async () => {
-      const info = DataHelper.generateEditableTestEntity();
-      const id = await model.create(info);
+      const info = DataHelper.generateBottomUpTestEntity();
+      const id = await model.insertBottomUp(info);
       const result = await getEntry(model, id);
       assert.deepEqual(result.creator, info.creator);
+    });
+
+    it('adds "repository" property', async () => {
+      const info = DataHelper.generateBottomUpTestEntity();
+      const id = await model.insertBottomUp(info);
+      const result = /** @type BottomUpTestEntity */ (await getEntry(model, id));
+      assert.equal(result.repository, info.repository);
+    });
+
+    it('adds "includeDev" property', async () => {
+      const info = DataHelper.generateBottomUpTestEntity();
+      const id = await model.insertBottomUp(info);
+      const result = /** @type BottomUpTestEntity */ (await getEntry(model, id));
+      assert.equal(result.includeDev, info.includeDev);
+    });
+  });
+
+  describe('insertAmf()', () => {
+    let model = /** @type TestModel */ (null);
+    beforeEach(() => {
+      model = new TestModel();
+    });
+
+    after(async () => {
+      await DataHelper.deleteEntities(model, model.testKind);
+    });
+
+    it('returns the id of the created entity', async () => {
+      const info = DataHelper.generateAmfTestEntity();
+      const id = await model.insertAmf(info);
+      assert.typeOf(id, 'string');
+    });
+
+    it('creates an entity in the store', async () => {
+      const info = DataHelper.generateAmfTestEntity();
+      const id = await model.insertAmf(info);
+      const result = await getEntry(model, id);
+      assert.typeOf(result, 'object');
+    });
+
+    it('adds "created" property', async () => {
+      const info = DataHelper.generateAmfTestEntity();
+      const id = await model.insertAmf(info);
+      const result = await getEntry(model, id);
+      assert.typeOf(result.created, 'number');
+    });
+
+    it('adds "type" property', async () => {
+      const info = DataHelper.generateAmfTestEntity();
+      const id = await model.insertAmf(info);
+      const result = await getEntry(model, id);
+      assert.equal(result.type, 'amf');
+    });
+
+    it('adds "status" property', async () => {
+      const info = DataHelper.generateAmfTestEntity();
+      const id = await model.insertAmf(info);
+      const result = await getEntry(model, id);
+      assert.equal(result.status, 'queued');
+    });
+
+    it('adds "creator" property', async () => {
+      const info = DataHelper.generateAmfTestEntity();
+      const id = await model.insertAmf(info);
+      const result = await getEntry(model, id);
+      assert.deepEqual(result.creator, info.creator);
+    });
+
+    it('adds "includeDev" property', async () => {
+      const info = DataHelper.generateAmfTestEntity();
+      const id = await model.insertAmf(info);
+      const result = /** @type AmfTestEntity */ (await getEntry(model, id));
+      assert.equal(result.amfBranch, info.amfBranch);
     });
   });
 
@@ -180,7 +289,7 @@ describe('TestModel', () => {
     let id;
     beforeEach(async () => {
       model = new TestModel();
-      const info = DataHelper.generateEditableTestEntity();
+      const info = DataHelper.generateBottomUpTestEntity();
       id = await model.create(info);
     });
 
@@ -202,7 +311,7 @@ describe('TestModel', () => {
     const message = 'test message';
     beforeEach(async () => {
       model = new TestModel();
-      const info = DataHelper.generateEditableTestEntity();
+      const info = DataHelper.generateAmfTestEntity();
       id = await model.create(info);
     });
 
@@ -212,10 +321,10 @@ describe('TestModel', () => {
       assert.equal(result.status, 'finished');
     });
 
-    it('sets "endTime"', async () => {
+    it('sets "ended"', async () => {
       await model.setTestError(id, message);
       const result = await getEntry(model, id);
-      assert.typeOf(result.endTime, 'number');
+      assert.typeOf(result.ended, 'number');
     });
 
     it('sets "error"', async () => {
@@ -241,7 +350,7 @@ describe('TestModel', () => {
     let id;
     beforeEach(async () => {
       model = new TestModel();
-      const info = DataHelper.generateEditableTestEntity();
+      const info = DataHelper.generateAmfTestEntity();
       id = await model.create(info);
     });
 
@@ -262,7 +371,7 @@ describe('TestModel', () => {
     let id;
     beforeEach(async () => {
       model = new TestModel();
-      const info = DataHelper.generateEditableTestEntity();
+      const info = DataHelper.generateAmfTestEntity();
       id = await model.create(info);
     });
 
@@ -289,7 +398,7 @@ describe('TestModel', () => {
     let id;
     beforeEach(async () => {
       model = new TestModel();
-      const info = DataHelper.generateEditableTestEntity();
+      const info = DataHelper.generateAmfTestEntity();
       id = await model.create(info);
     });
 
@@ -327,7 +436,7 @@ describe('TestModel', () => {
     let id;
     beforeEach(async () => {
       model = new TestModel();
-      const info = DataHelper.generateEditableTestEntity();
+      const info = DataHelper.generateAmfTestEntity();
       id = await model.create(info);
     });
 
@@ -337,10 +446,10 @@ describe('TestModel', () => {
       assert.equal(result.status, 'finished');
     });
 
-    it('sets endTime', async () => {
+    it('sets the ended property', async () => {
       await model.finish(id);
       const result = await getEntry(model, id);
-      assert.typeOf(result.endTime, 'number');
+      assert.typeOf(result.ended, 'number');
     });
 
     it('adds "message" property', async () => {
@@ -364,7 +473,7 @@ describe('TestModel', () => {
     let component;
     beforeEach(async () => {
       model = new TestModel();
-      const info = DataHelper.generateEditableTestEntity();
+      const info = DataHelper.generateBottomUpTestEntity();
       id = await model.create(info);
       component = DataHelper.generatePackageName();
 
@@ -372,8 +481,8 @@ describe('TestModel', () => {
       await cmpModel.create(id, component);
 
       logsModel = new TestLogModel();
-      const raports = DataHelper.generateTestReport(2).results;
-      await logsModel.addLogs(id, component, raports);
+      const reports = DataHelper.generateTestReport(2).results;
+      await logsModel.addLogs(id, component, reports);
     });
 
     it('deletes the test model entity', async () => {
@@ -389,7 +498,7 @@ describe('TestModel', () => {
     });
 
     it('deletes only components related to the test', async () => {
-      const info = DataHelper.generateEditableTestEntity();
+      const info = DataHelper.generateBottomUpTestEntity();
       const otherId = await model.create(info);
       const otherComponent = DataHelper.generatePackageName();
       await cmpModel.create(otherId, otherComponent);
@@ -406,12 +515,12 @@ describe('TestModel', () => {
     });
 
     it('deletes only logs related to the test', async () => {
-      const info = DataHelper.generateEditableTestEntity();
+      const info = DataHelper.generateBottomUpTestEntity();
       const otherId = await model.create(info);
       const otherComponent = DataHelper.generatePackageName();
       await cmpModel.create(otherId, otherComponent);
-      const raports = DataHelper.generateTestReport(2).results;
-      await logsModel.addLogs(otherId, otherComponent, raports);
+      const reports = DataHelper.generateTestReport(2).results;
+      await logsModel.addLogs(otherId, otherComponent, reports);
 
       await model.delete(id);
       const logResult = await logsModel.list(otherId, otherComponent);

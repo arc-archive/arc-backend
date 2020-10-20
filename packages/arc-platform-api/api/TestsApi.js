@@ -5,10 +5,16 @@ import validator from 'validator';
 import { TestModel, TestComponentModel, TestLogModel } from '@advanced-rest-client/backend-models';
 import logging from '@advanced-rest-client/arc-platform-logger';
 import { BaseApi } from './BaseApi.js';
+import background from '../lib/Background.js';
 
-/** @typedef {import('./BaseApi').SessionRequest} Request */
+/** @typedef {import('../types').SessionRequest} Request */
 /** @typedef {import('express').Response} Response */
-/** @typedef {import('@advanced-rest-client/backend-models').EditableTestEntity} EditableTestEntity */
+/** @typedef {import('@advanced-rest-client/backend-models').AmfTestEntity} AmfTestEntity */
+/** @typedef {import('@advanced-rest-client/backend-models').AmfTest} AmfTest */
+/** @typedef {import('@advanced-rest-client/backend-models').BottomUpTestEntity} BottomUpTestEntity */
+/** @typedef {import('@advanced-rest-client/backend-models').BottomUpTest} BottomUpTest */
+/** @typedef {import('@advanced-rest-client/backend-models').UserEntity} UserEntity */
+
 
 const router = express.Router();
 export default router;
@@ -34,36 +40,41 @@ class TestApiRoute extends BaseApi {
    * @return {string|undefined} Error message or undefined if valid.
    */
   validateCreateTest(req) {
-    const messages = [];
-    const body = req.body;
+    const body = /** @type BottomUpTest|AmfTest */ (req.body);
     if (!body.type) {
-      messages[messages.length] = 'Test "type" is required.';
-    } else if (['amf-build', 'bottom-up'].indexOf(body.type) === -1) {
-      messages[messages.length] = `"${body.type}" is not valid value for "type" property.`;
+      return 'Test "type" is required.';
+    } else if (['amf', 'bottom-up'].indexOf(body.type) === -1) {
+      return `"${body.type}" is not valid value for "type" property.`;
     }
-    if (!body.branch) {
-      messages[messages.length] = 'The "branch" property is required.';
+    if (body.type === 'amf') {
+      return this.validateAmfTest(/** @type AmfTest */ (body));
     }
-    if (body.type === 'amf-build' && body.component) {
-      messages[messages.length] = 'The "component" property cannot be used with "amf-build" type.';
+    return this.validateBottomUpTest(/** @type BottomUpTest */ (body));
+  }
+
+  /**
+   * @param {AmfTest} body
+   * @return {string|undefined}
+   */
+  validateAmfTest(body) {
+    const messages = [];
+    if (!body.amfBranch) {
+      messages[messages.length] = 'The "amfBranch" property is required.';
     }
-    if (body.type === 'bottom-up' && !body.component) {
-      messages[messages.length] = 'The "component" property is required with "bottom-up" type.';
-    }
-    if (body.type === 'bottom-up' && !body.org) {
-      messages[messages.length] = 'The "org" property is required with "bottom-up" type.';
-    }
+    return messages.length ? messages.join(' ') : undefined;
+  }
+
+  /**
+   * @param {BottomUpTest} body
+   * @return {string|undefined}
+   */
+  validateBottomUpTest(body) {
+    const messages = [];
     if (body.includeDev !== undefined && typeof body.includeDev !== 'boolean') {
       messages[messages.length] = `Invalid type "${typeof body.includeDev}" for "includeDev" property.`;
     }
-    if (body.component) {
-      const cmp = String(body.component);
-      if (cmp[0] !== '@') {
-        messages[messages.length] = 'The "component" has no NPM scope.';
-      }
-    }
-    if (body.commit && !validator.isHash(body.commit, 'sha1')) {
-      messages[messages.length] = 'The "commit" property is not valid SHA1 hash.';
+    if (!body.repository) {
+      messages[messages.length] = `The "repository" property is required.`;
     }
     return messages.length ? messages.join(' ') : undefined;
   }
@@ -84,41 +95,61 @@ class TestApiRoute extends BaseApi {
         this.sendError(res, errors, 400);
         return;
       }
-      // @ts-ignore
       const { body, user } = req;
-      const info = /** @type EditableTestEntity */ ({
-        branch: body.branch,
-        type: body.type,
-        creator: {
-          id: user.id,
-          displayName: user.displayName || '',
-        },
-      });
-      if (body.purpose) {
-        info.purpose = validator.escape(body.purpose);
+      let entity = /** @type AmfTest|BottomUpTest */(null);
+      if (body.type === 'amf') {
+        entity = this.createAmfTestObject(/** @type AmfTest */(body), user);
+      } else {
+        entity = this.createBottomUpTestObject(/** @type BottomUpTest */(body), user);
       }
-      if (body.commit) {
-        info.commit = body.commit;
-      }
-      if (body.component) {
-        // @ts-ignore
-        info.component = body.component;
-      }
-      if (body.org) {
-        // @ts-ignore
-        info.org = body.org;
-      }
-      if (body.includeDev) {
-        // @ts-ignore
-        info.includeDev = body.includeDev;
-      }
-      const id = await this.testModel.create(info);
+      const id = await this.testModel.create(entity);
       res.send({ id });
+      background.queueTest(id);
     } catch (cause) {
       logging.error(cause);
-      const status = cause.status || 500;
+      const status = cause.code || 500;
       this.sendError(res, cause.message, status);
     }
+  }
+
+  /**
+   * @param {AmfTest} body
+   * @param {UserEntity} user
+   * @return {AmfTest}
+   */
+  createAmfTestObject(body, user) {
+    const info = /** @type AmfTest */ ({
+      type: body.type,
+      amfBranch: body.amfBranch,
+      creator: {
+        id: user.id,
+        displayName: user.displayName || '',
+      },
+    });
+    if (body.purpose) {
+      info.purpose = validator.escape(body.purpose);
+    }
+    return info;
+  }
+
+  /**
+   * @param {BottomUpTest} body
+   * @param {UserEntity} user
+   * @return {BottomUpTest}
+   */
+  createBottomUpTestObject(body, user) {
+    const info = /** @type BottomUpTest */ ({
+      type: body.type,
+      repository: body.repository,
+      creator: {
+        id: user.id,
+        displayName: user.displayName || '',
+      },
+    });
+    if (body.purpose) {
+      info.purpose = validator.escape(body.purpose);
+    }
+    return info;
   }
 
   /**
@@ -195,9 +226,10 @@ class TestApiRoute extends BaseApi {
       }
       await this.testModel.delete(testId);
       res.sendStatus(204).end();
+      background.dequeueTest(testId);
     } catch (cause) {
       logging.error(cause);
-      const status = cause.status || 500;
+      const status = cause.code || 500;
       this.sendError(res, cause.message, status);
     }
   }
@@ -213,9 +245,10 @@ class TestApiRoute extends BaseApi {
       await this.ensureAccess(req, 'create-test');
       await this.testModel.resetTest(testId);
       res.sendStatus(204).end();
+      background.queueTest(testId);
     } catch (cause) {
       logging.error(cause);
-      const status = cause.status || 500;
+      const status = cause.code || 500;
       this.sendError(res, cause.message, status);
     }
   }

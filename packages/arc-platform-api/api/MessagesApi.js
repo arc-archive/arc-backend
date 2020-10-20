@@ -217,7 +217,7 @@ class MessagesApiRoute extends BaseApi {
       message.kind = 'ArcInfo#Message';
       res.send(message);
     } catch (e) {
-      const status = e.status || 500;
+      const status = e.code || 500;
       this.sendError(res, e.message, status);
     }
   }
@@ -251,7 +251,7 @@ class MessagesApiRoute extends BaseApi {
       await this.model.delete(messageId);
       res.sendStatus(204).end();
     } catch (e) {
-      const status = e.status || 500;
+      const status = e.code || 500;
       this.sendError(res, e.message, status);
     }
   }

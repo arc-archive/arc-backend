@@ -25,7 +25,7 @@ export declare interface GithubBuild {
    */
   ended?: number;
   /**
-   * A flag determining that the test resulted with an error
+   * A flag determining that the build resulted with an error
    * @readonly This is ignored when creating / updating an entity
    */
   error?: boolean;

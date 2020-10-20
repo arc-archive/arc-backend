@@ -1,5 +1,5 @@
 import { BaseModel, Entity, QueryResult, QueryOptions } from './BaseModel.js';
-import { TestReport } from './TestReport';
+import { TestReport } from './types/TestReport';
 
 export declare interface BaseTestComponentEntity {
   component: string;
@@ -44,7 +44,7 @@ export declare interface TestComponentQueryResult extends QueryResult<TestCompon
 export declare interface TestComponentQueryOptions extends QueryOptions {}
 
 /**
- * A model for a componet test results in a run.
+ * A model for a component test results in a run.
  */
 export class TestComponentModel extends BaseModel {
   constructor();

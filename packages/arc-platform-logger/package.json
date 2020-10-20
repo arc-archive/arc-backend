@@ -5,6 +5,7 @@
   "license": "Apache-2.0",
   "main": "index.js",
   "module": "index.js",
+  "type": "module",
   "keywords": [
     "arc-backend",
     "logger"

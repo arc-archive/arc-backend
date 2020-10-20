@@ -1,7 +1,7 @@
 import { BaseModel, Entity, QueryResult, QueryOptions } from './BaseModel.js';
 import { entity } from '@google-cloud/datastore/build/src/entity';
 import { Transaction } from '@google-cloud/datastore';
-import { Creator } from './Creator';
+import { Creator } from './types/Creator';
 
 export declare interface EditableCoverageEntity {
   /**
@@ -21,7 +21,7 @@ export declare interface EditableCoverageEntity {
    */
   tag: string;
   /**
-   * If the build is scheduled by a person then this person't info.
+   * If the build is scheduled by a person then this person's info.
    */
   creator?: Creator;
 }
@@ -48,7 +48,7 @@ export declare interface CoverageEntity extends EditableCoverageEntity, Entity {
    */
   endTime?: number;
   /**
-   * A flag determinig that the test resulted with an error
+   * A flag determining that the test resulted with an error
    */
   error?: boolean;
   /**
@@ -82,7 +82,7 @@ export declare interface CoverageFileResult {
    */
   hit: number;
   /**
-   * The total ocurrances
+   * The total occurrences
    */
   found: number;
 }
@@ -191,7 +191,7 @@ export class CoverageModel extends BaseModel {
   runError(runId: string, message: string): Promise<void>;
 
   /**
-   * Makrs tests as finished with the coverage results
+   * Marks tests as finished with the coverage results
    * @param runId The id of the coverage run
    * @param coverage Coverage results
    */
@@ -218,7 +218,7 @@ export class CoverageModel extends BaseModel {
    * Queries for coverage results for each file in the run.
    * @param runId The ID of the test run
    * @param opts Query options
-   * @return List of enties to return.
+   * @return List of entities to return.
    */
   queryRunFiles(runId: string, opts?: CoverageFilesQueryOptions): Promise<QueryResult<CoverageReportEntity>>;
 

@@ -461,11 +461,11 @@ export class ComponentModel extends BaseModel {
    * @param {ComponentEntity} model Existing model
    * @param {string} version Version number
    * @param {Key} key Datastore key for a component
-   * @param {TagsProcessOptions=} tagopts Components tags.
+   * @param {TagsProcessOptions=} tagOpts Components tags.
    * @return {Promise<ComponentEntity>} updated model
    */
-  async addComponentVersion(model, version, key, tagopts={}) {
-    const { tags, keepTags } = tagopts;
+  async addComponentVersion(model, version, key, tagOpts={}) {
+    const { tags, keepTags } = tagOpts;
     if (!model.versions) {
       model.versions = [];
     }
@@ -500,7 +500,7 @@ export class ComponentModel extends BaseModel {
   }
 
   /**
-   * Replaces/creates version in the datastrore
+   * Replaces/creates version in the data store
    *
    * @param {ComponentEntity} parent Parent component
    * @param {string} version Component version

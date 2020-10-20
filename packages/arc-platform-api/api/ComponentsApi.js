@@ -4,7 +4,7 @@ import { ComponentModel, DependencyModel } from '@advanced-rest-client/backend-m
 import logging from '@advanced-rest-client/arc-platform-logger';
 import { BaseApi } from './BaseApi.js';
 
-/** @typedef {import('./BaseApi').SessionRequest} Request */
+/** @typedef {import('../types').SessionRequest} Request */
 /** @typedef {import('express').Response} Response */
 
 const router = express.Router();
@@ -35,7 +35,7 @@ class ComponentsApiRoute extends BaseApi {
       return;
     }
     const messages = [];
-    if (!(tags instanceof Array)) {
+    if (!Array.isArray(tags)) {
       if (typeof tags === 'string') {
         req.query.tags = [tags];
       } else {

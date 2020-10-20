@@ -1,8 +1,8 @@
 import { BaseModel } from './BaseModel.js';
 
 /** @typedef {import('@google-cloud/datastore/build/src/entity').entity.Key} Key */
-/** @typedef {import('./PassportProfile').PassportProfile} PassportProfile */
-/** @typedef {import('./PassportProfile').Email} Email */
+/** @typedef {import('./types/PassportProfile').PassportProfile} PassportProfile */
+/** @typedef {import('./types/PassportProfile').Email} Email */
 /** @typedef {import('./UserModel').UserEntity} UserEntity */
 
 const externalEmails = ['jarrodek@gmail.com'];

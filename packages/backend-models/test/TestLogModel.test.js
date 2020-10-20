@@ -1,10 +1,11 @@
 import Emulator from 'google-datastore-emulator';
-import { assert } from 'chai';
+import pkg from 'chai';
+const { assert } = pkg;
 import { TestLogModel } from '../index.js';
 import DataHelper from './DataHelper.js';
 
 /** @typedef {import('../src/TestLogModel').TestLogEntity} TestLogEntity */
-/** @typedef {import('../src/TestReport').TestBrowserResult} TestBrowserResult */
+/** @typedef {import('../src/types/TestReport').TestBrowserResult} TestBrowserResult */
 
 describe('TestLogModel', () => {
   process.env.GCLOUD_PROJECT = 'advancedrestclient-1155';

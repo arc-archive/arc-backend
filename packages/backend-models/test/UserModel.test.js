@@ -1,10 +1,11 @@
 import Emulator from 'google-datastore-emulator';
-import { assert } from 'chai';
+import pkg from 'chai';
+const { assert } = pkg;
 import Chance from 'chance';
 import { UserModel } from '../src/UserModel.js';
 
 /** @typedef {import('../src/UserModel').UserEntity} UserEntity */
-/** @typedef {import('../src/PassportProfile').PassportProfile} PassportProfile */
+/** @typedef {import('../src/types/PassportProfile').PassportProfile} PassportProfile */
 
 const chance = new Chance();
 

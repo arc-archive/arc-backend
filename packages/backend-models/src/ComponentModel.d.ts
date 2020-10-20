@@ -70,7 +70,7 @@ export declare interface VersionCreateOptions {
    */
   pkg: string;
   /**
-   * Component GitHub oganization name
+   * Component GitHub organization name
    */
   org: string;
   /**
@@ -275,7 +275,7 @@ export declare class ComponentModel extends BaseModel {
   addComponentVersion(model: ComponentEntity, version: string, key: entity.Key, tags?: TagsProcessOptions): Promise<ComponentEntity>;
 
   /**
-   * Replaces/creates version in the datastrore
+   * Replaces/creates version in the data store
    *
    * @param {ComponentEntity} parent Parent component
    * @param version Component version

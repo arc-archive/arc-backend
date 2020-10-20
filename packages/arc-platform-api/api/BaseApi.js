@@ -78,7 +78,7 @@ export class BaseApi {
    * authorization header with valid JWT.
    * @param {Request} req
    * @param {String=} scope
-   * @return {Promise<Boolean>}
+   * @return {Promise<boolean>}
    */
   async isValidAccess(req, scope) {
     // @ts-ignore

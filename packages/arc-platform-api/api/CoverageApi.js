@@ -2,8 +2,9 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import { BaseApi } from './BaseApi.js';
 import { CoverageModel } from '@advanced-rest-client/backend-models';
+import background from '../lib/Background.js';
 
-/** @typedef {import('./BaseApi').SessionRequest} Request */
+/** @typedef {import('../types').SessionRequest} Request */
 /** @typedef {import('express').Response} Response */
 /** @typedef {import('@advanced-rest-client/backend-models').CoverageEntity} CoverageEntity */
 
@@ -58,8 +59,9 @@ class CoverageApi extends BaseApi {
       }
       const created = await this.model.insert(info);
       res.send({ created });
+      background.queueCoverageRun(created.id);
     } catch (e) {
-      const status = e.status || 500;
+      const status = e.code || 500;
       this.sendError(res, e.message, status);
     }
   }

@@ -1,14 +1,4 @@
-import { BaseModel } from '../src/BaseModel';
-import { entity } from '@google-cloud/datastore/build/src/entity';
-import { CoverageModel, EditableCoverageEntity, CoverageEntity, CoverageResult, CoverageSummaryResult, CoverageReport, CoverageFileResult } from '../src/CoverageModel';
-import { DependencyEntry, DependencyModel } from '../src/DependencyModel';
-import { TestReport, TestBrowserResult } from '../src/types/TestReport';
-import { TestComponentModel } from '../src/TestComponentModel';
-import { TestModel } from '../src/TestModel';
-import { UserEntity } from '../src/UserModel';
-import { PassportProfile } from '../src/types/PassportProfile';
-import { TokenInfo, TokenModel } from '../src/TokenModel';
-import { AmfTest, BottomUpTest } from '../src/types/ComponentTest';
+import { BaseModel, entity, CoverageModel, EditableCoverageEntity, CoverageEntity, CoverageResult, CoverageSummaryResult, CoverageReport, CoverageFileResult, DependencyEntry, DependencyModel, TestReport, TestBrowserResult, TestComponentModel, TestModel, UserEntity, PassportProfile, TokenInfo, TokenModel, AmfTest, BottomUpTest } from '@advanced-rest-client/backend-models';
 
 export declare interface ComponentInsertOptions {
   name?: string;

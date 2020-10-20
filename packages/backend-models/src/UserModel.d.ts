@@ -1,5 +1,5 @@
 import { BaseModel, Entity, QueryResult, QueryOptions } from './BaseModel.js';
-import { PassportProfile, Email } from './PassportProfile';
+import { PassportProfile, Email } from './types/PassportProfile';
 
 export declare interface UserEntity extends Entity {
   /**

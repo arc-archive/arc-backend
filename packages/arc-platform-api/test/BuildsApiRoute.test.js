@@ -1,10 +1,11 @@
 import Emulator from 'google-datastore-emulator';
-import { assert } from 'chai';
+import chaiPkg from 'chai';
 import Chance from 'chance';
 import { GitHubBuildModel } from '@advanced-rest-client/backend-models';
 import fetch from 'node-fetch';
-import { server, serverStartPromise } from '../index.js';
+import { server, serverStartPromise } from '../index.mjs';
 import { generateFullToken } from './TokenHelper.js';
+const { assert } = chaiPkg;
 
 /** @typedef {import('net').AddressInfo} AddressInfo */
 /** @typedef {import('@advanced-rest-client/backend-models').GithubBuildEntity} GithubBuildEntity */

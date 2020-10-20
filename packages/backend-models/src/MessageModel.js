@@ -79,7 +79,7 @@ export class MessageModel extends BaseModel {
   }
 
   /**
-   * Makes the query to the backend to retreive list or messages.
+   * Makes the query to the backend to retrieve list or messages.
    * @param {MessageFilter=} config Query options.
    * @return {Promise<MessageQueryResult>}
    */

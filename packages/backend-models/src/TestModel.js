@@ -3,12 +3,13 @@ import { BaseModel } from './BaseModel.js';
 
 /** @typedef {import('@google-cloud/datastore/build/src/entity').entity.Key} Key */
 /** @typedef {import('@google-cloud/datastore').Transaction} Transaction */
-/** @typedef {import('./TestReport').TestReport} TestReport */
-/** @typedef {import('./TestModel').TestEntity} TestEntity */
-/** @typedef {import('./TestModel').TestQueryOptions} TestQueryOptions */
-/** @typedef {import('./TestModel').TestQueryResult} TestQueryResult */
-/** @typedef {import('./TestModel').EditableTestEntity} EditableTestEntity */
-/** @typedef {import('./TestModel').EditableBottomUpEntity} EditableBottomUpEntity */
+/** @typedef {import('./types/TestReport').TestReport} TestReport */
+/** @typedef {import('./types/ComponentTest').TestQueryOptions} TestQueryOptions */
+/** @typedef {import('./types/ComponentTest').TestQueryResult} TestQueryResult */
+/** @typedef {import('./types/ComponentTest').AmfTest} AmfTest */
+/** @typedef {import('./types/ComponentTest').BottomUpTest} BottomUpTest */
+/** @typedef {import('../src/types/ComponentTest').AmfTestEntity} AmfTestEntity */
+/** @typedef {import('../src/types/ComponentTest').BottomUpTestEntity} BottomUpTestEntity */
 
 /**
  * A model for catalog items.
@@ -27,17 +28,17 @@ export class TestModel extends BaseModel {
   get excludedIndexes() {
     return [
       'type',
-      'commit',
-      'branch',
       'status',
       'size',
       'passed',
       'failed',
-      'component',
+      'repository',
+      'includeDev',
+      'amfBranch',
       'error',
       'message',
-      'includeDev',
-      'org',
+      'started',
+      'ended',
       'creator.id',
       'creator.displayName',
     ];
@@ -59,7 +60,7 @@ export class TestModel extends BaseModel {
       query = query.start(pageToken);
     }
     const [entitiesRaw, queryInfo] = await this.store.runQuery(query);
-    const entities = /** @type TestEntity[] */ (entitiesRaw.map(this.fromDatastore.bind(this)));
+    const entities = /** @type AmfTestEntity[]|BottomUpTestEntity[] */ (entitiesRaw.map(this.fromDatastore.bind(this)));
     const newPageToken = queryInfo.moreResults !== this.NO_MORE_RESULTS ? queryInfo.endCursor : undefined;
     return {
       entities,
@@ -69,24 +70,37 @@ export class TestModel extends BaseModel {
 
   /**
    * Insets a test to the data store.
-   * NOTE, it won't schedule a test in the corresponding background application.
+   * NOTE, this won't schedule a test in the corresponding background application.
    *
-   * @param {EditableTestEntity} info Entity description
+   * @param {BottomUpTest|AmfTest} info Entity description
    * @return {Promise<string>} The key value of the generated identifier for the entity
    */
   async create(info) {
+    switch (info.type) {
+      case 'amf': return this.insertAmf(/** @type AmfTest */(info));
+      case 'bottom-up': return this.insertBottomUp(/** @type BottomUpTest */(info));
+      default: throw new Error('Unknown type');
+    }
+  }
+
+  /**
+   * Inserts a test that is a "bottom-up" test.
+   * @param {BottomUpTest} info The create object
+   * @return {Promise<string>} A promise resolved to the generated test id.
+   */
+  async insertBottomUp(info) {
     const now = Date.now();
     const keyName = uuidV4();
     const key = this.createTestKey(keyName);
     const results = [
       {
         name: 'type',
-        value: info.type,
+        value: 'bottom-up',
         excludeFromIndexes: true,
       },
       {
-        name: 'branch',
-        value: info.branch,
+        name: 'repository',
+        value: info.repository,
         excludeFromIndexes: true,
       },
       {
@@ -104,46 +118,58 @@ export class TestModel extends BaseModel {
         excludeFromIndexes: true,
       },
     ];
-
-    if (info.commit) {
-      results.push({
-        name: 'commit',
-        value: info.commit,
-        excludeFromIndexes: true,
-      });
-    }
-    if (info.purpose) {
-      results.push({
-        name: 'purpose',
-        value: info.purpose,
-        excludeFromIndexes: true,
-      });
-    }
-    const bottomUpType = /** @type EditableBottomUpEntity */ (info);
-
-    if (bottomUpType.component) {
-      results.push({
-        name: 'component',
-        value: bottomUpType.component,
-        excludeFromIndexes: true,
-      });
-    }
-    if (bottomUpType.org) {
-      results.push({
-        name: 'org',
-        value: bottomUpType.org,
-        excludeFromIndexes: true,
-      });
-    }
-
-    if (typeof bottomUpType.includeDev === 'boolean') {
+    if (typeof info.includeDev === 'boolean') {
       results.push({
         name: 'includeDev',
         // @ts-ignore
-        value: bottomUpType.includeDev,
+        value: info.includeDev,
         excludeFromIndexes: true,
       });
     }
+    const entity = {
+      key,
+      data: results,
+    };
+    await this.store.upsert(entity);
+    return keyName;
+  }
+
+  /**
+   * Inserts a test that is a "bottom-up" test.
+   * @param {AmfTest} info The create object
+   * @return {Promise<string>} A promise resolved to the generated test id.
+   */
+  async insertAmf(info) {
+    const now = Date.now();
+    const keyName = uuidV4();
+    const key = this.createTestKey(keyName);
+
+    const results = [
+      {
+        name: 'type',
+        value: 'amf',
+        excludeFromIndexes: true,
+      },
+      {
+        name: 'amfBranch',
+        value: info.amfBranch,
+        excludeFromIndexes: true,
+      },
+      {
+        name: 'created',
+        value: now,
+      },
+      {
+        name: 'status',
+        value: 'queued',
+        excludeFromIndexes: true,
+      },
+      {
+        name: 'creator',
+        value: info.creator,
+        excludeFromIndexes: true,
+      },
+    ];
     const entity = {
       key,
       data: results,
@@ -169,7 +195,8 @@ export class TestModel extends BaseModel {
       delete entity.passed;
       delete entity.failed;
       delete entity.size;
-      delete entity.startTime;
+      delete entity.started;
+      delete entity.ended;
       delete entity.error;
       delete entity.message;
       transaction.save({
@@ -189,7 +216,7 @@ export class TestModel extends BaseModel {
   /**
    * Gets test definition from the store.
    * @param {string} id The ID of the test.
-   * @return {Promise<TestEntity|null>}
+   * @return {Promise<BottomUpTestEntity|AmfTestEntity|null>}
    */
   async get(id) {
     const key = this.createTestKey(id);
@@ -209,7 +236,7 @@ export class TestModel extends BaseModel {
   async start(id) {
     await this.updateTestProperties(id, {
       status: 'running',
-      startTime: Date.now(),
+      started: Date.now(),
     });
   }
 
@@ -222,7 +249,7 @@ export class TestModel extends BaseModel {
   async setTestError(id, message) {
     await this.updateTestProperties(id, {
       status: 'finished',
-      endTime: Date.now(),
+      ended: Date.now(),
       error: true,
       message,
     });
@@ -244,6 +271,7 @@ export class TestModel extends BaseModel {
    * Marks component as an error
    * @param {string} id The ID of the test.
    * @return {Promise<void>}
+   * @deprecated
    */
   async setComponentError(id) {
     const transaction = this.store.transaction();
@@ -272,7 +300,7 @@ export class TestModel extends BaseModel {
 
   /**
    * Updates Test with the test result
-   * @param {String} id The ID of the test.
+   * @param {string} id The ID of the test.
    * @param {TestReport} report Test run report
    * @return {Promise<void>}
    */
@@ -318,7 +346,7 @@ export class TestModel extends BaseModel {
   async finish(id, message) {
     const props = {
       status: 'finished',
-      endTime: Date.now(),
+      ended: Date.now(),
     };
     if (message) {
       props.message = message;
@@ -328,7 +356,7 @@ export class TestModel extends BaseModel {
 
   /**
    * Updates test properties in a transaction
-   * @param {String} id The ID of the test.
+   * @param {string} id The ID of the test.
    * @param {object} props A properties to update
    * @return {Promise<void>} [description]
    */

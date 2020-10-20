@@ -1,6 +1,6 @@
 import { BaseModel } from './BaseModel.js';
 
-/** @typedef {import('./TestReport').TestReport} TestReport */
+/** @typedef {import('./types/TestReport').TestReport} TestReport */
 /** @typedef {import('./TestComponentModel').TestComponentEntity} TestComponentEntity */
 /** @typedef {import('./TestComponentModel').TestComponentQueryOptions} TestComponentQueryOptions */
 /** @typedef {import('./TestComponentModel').TestComponentQueryResult} TestComponentQueryResult */
@@ -10,7 +10,7 @@ const excludedIndexes = [
 ];
 
 /**
- * A model for a componet test results in a run.
+ * A model for a component test results in a run.
  */
 export class TestComponentModel extends BaseModel {
   /**

@@ -39,7 +39,7 @@ export declare interface CreateMessageEntity {
    */
   title: string;
   /**
-   * Main sction URL
+   * Main action URL
    */
   actionUrl?: string;
   /**
@@ -95,7 +95,7 @@ export class MessageModel extends BaseModel {
   _createQuery(config: MessageFilter): Query;
 
   /**
-   * Makes the query to the backend to retreive list or messages.
+   * Makes the query to the backend to retrieve list or messages.
    * @param config Query options.
    */
   list(config?: MessageFilter): Promise<MessageQueryResult>;
