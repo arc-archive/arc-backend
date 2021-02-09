@@ -14,6 +14,7 @@
   },
   "include": [
     "**/*.js",
+    "**/*.mjs",
     "node_modules/@open-wc/**/*.js", "packages/arc-platform-api/index.mjs"
   ],
   "exclude": [

@@ -1,5 +1,5 @@
 import { BaseModel } from './BaseModel.js';
-import uuidV4 from '@advanced-rest-client/uuid-generator/src/v4.js';
+import { v4 } from 'uuid';
 
 /** @typedef {import('./types/GitHubBuild').GithubBuildQueryOptions} GithubBuildQueryOptions */
 /** @typedef {import('./types/GitHubBuild').GithubBuildQueryResult} GithubBuildQueryResult */
@@ -73,7 +73,7 @@ export class GitHubBuildModel extends BaseModel {
    */
   async insertBuild(info) {
     const now = Date.now();
-    const id = uuidV4();
+    const id = v4();
     const key = this.createBuildKey(id);
     const results = [
       {

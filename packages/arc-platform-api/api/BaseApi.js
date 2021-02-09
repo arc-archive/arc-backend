@@ -6,7 +6,7 @@ import { AccessError } from './Errors.js';
 /* eslint-disable class-methods-use-this */
 
 /** @typedef {import('express').Response} Response */
-/** @typedef {import('./BaseApi').SessionRequest} Request */
+/** @typedef {import('../types').SessionRequest} Request */
 /** @typedef {import('express').Router} Router */
 /** @typedef {import('@advanced-rest-client/backend-models').QueryResult} QueryResult */
 
@@ -207,19 +207,18 @@ export class BaseApi {
 
   /**
    * Validates pagination parameters for various endpoints that result with list of results.
-   * @param {Object} req HTTP request
-   * @return {String|undefined} Validation error message or undefined if valid.
+   * @param {Request} req HTTP request
+   * @return {string|undefined} Validation error message or undefined if valid.
    */
   validatePagination(req) {
     const messages = [];
-    let { limit } = req.query;
-    if (limit) {
-      if (isNaN(limit)) {
+    const { limit } = req.query;
+    if (typeof limit !== 'undefined') {
+      const typedLimit = Number(limit);
+      if (Number.isNaN(typedLimit)) {
         messages[messages.length] = 'Limit value is not a number';
-      }
-      limit = Number(limit);
-      if (limit > 300 || limit < 0) {
-        messages[messages.length] = 'Limit out of bounds [0, 300]';
+      } else if (typedLimit > 300 || typedLimit <= 0) {
+        messages[messages.length] = 'Limit out of bounds (0, 300]';
       }
     }
     return messages.length ? messages.join(' ') : undefined;

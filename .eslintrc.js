@@ -20,6 +20,25 @@ module.exports = {
     'babel',
     'import',
   ],
+  overrides: [
+    {
+      files: [
+        '**/test/**/*.js',
+        '**/test/**/*.mjs',
+      ],
+      rules: {
+        'no-console': 'off',
+        'no-plusplus': 'off',
+        'no-unused-expressions': 'off',
+        'class-methods-use-this': 'off',
+        'import/no-extraneous-dependencies': 'off',
+        'require-jsdoc': 'off',
+      },
+    },
+  ],
+  ignorePatterns: [
+    '**/*.d.ts',
+  ],
   rules: {
     'arrow-parens': [
       'error',
@@ -51,7 +70,7 @@ module.exports = {
       },
     ],
     'class-methods-use-this': [
-      // this is unescesary for node apps.
+      // this is unnecessary for node apps.
       'off',
       {
         'exceptMethods': [],

@@ -3,7 +3,7 @@ import chaiPkg from 'chai';
 import Chance from 'chance';
 import { GitHubBuildModel } from '@advanced-rest-client/backend-models';
 import fetch from 'node-fetch';
-import { server, serverStartPromise } from '../index.mjs';
+import config from '@advanced-rest-client/backend-config';
 import { generateFullToken } from './TokenHelper.js';
 const { assert } = chaiPkg;
 
@@ -11,7 +11,7 @@ const { assert } = chaiPkg;
 /** @typedef {import('@advanced-rest-client/backend-models').GithubBuildEntity} GithubBuildEntity */
 /** @typedef {import('@advanced-rest-client/backend-models').TokenEntity} TokenEntity */
 
-const { port } = /** @type AddressInfo */ (server.address());
+const port = config.get('PORT');
 const chance = new Chance();
 
 const baseUri = `http://localhost:${port}/v2/ci/`;
@@ -21,17 +21,11 @@ describe('BuildsApiRoute', () => {
   let emulator = /** @type Emulator */ (null);
   before(async () => {
     emulator = new Emulator({});
-    await serverStartPromise;
     await emulator.start();
   });
 
   after(async () => {
     await emulator.stop();
-    return new Promise((resolve) => {
-      server.close(() => {
-        resolve();
-      });
-    });
   });
 
   const typesEnum = ['stage', 'master', 'tag'];
@@ -103,7 +97,7 @@ describe('BuildsApiRoute', () => {
     it('uses the page token', async () => {
       const response1 = await fetch(`${buildRoute}?limit=5`);
       const result1 = await response1.json();
-      const response2 = await fetch(`${buildRoute}?pageToken=${result1.pageToken}`);
+      const response2 = await fetch(`${buildRoute}?pageToken=${encodeURIComponent(result1.pageToken)}`);
       const result2 = await response2.json();
       assert.lengthOf(result2.items, 5, 'has the same number or results');
       assert.notDeepEqual(result2.items, result1.items, 'has next page of results');

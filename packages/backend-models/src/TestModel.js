@@ -1,4 +1,4 @@
-import uuidV4 from '@advanced-rest-client/uuid-generator/src/v4.js';
+import { v4 } from 'uuid';
 import { BaseModel } from './BaseModel.js';
 
 /** @typedef {import('@google-cloud/datastore/build/src/entity').entity.Key} Key */
@@ -90,7 +90,7 @@ export class TestModel extends BaseModel {
    */
   async insertBottomUp(info) {
     const now = Date.now();
-    const keyName = uuidV4();
+    const keyName = v4();
     const key = this.createTestKey(keyName);
     const results = [
       {
@@ -141,7 +141,7 @@ export class TestModel extends BaseModel {
    */
   async insertAmf(info) {
     const now = Date.now();
-    const keyName = uuidV4();
+    const keyName = v4();
     const key = this.createTestKey(keyName);
 
     const results = [
