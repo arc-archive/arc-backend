@@ -2,13 +2,10 @@ import semver from 'semver';
 import { BaseModel } from './BaseModel.js';
 
 /** @typedef {import('@google-cloud/datastore/build/src/entity').entity.Key} Key */
-/** @typedef {import('./ComponentModel').GroupQueryResult} GroupQueryResult */
 /** @typedef {import('./ComponentModel').ComponentQueryResult} ComponentQueryResult */
 /** @typedef {import('./ComponentModel').VersionQueryResult} VersionQueryResult */
-/** @typedef {import('./ComponentModel').GroupEntity} GroupEntity */
 /** @typedef {import('./ComponentModel').ComponentEntity} ComponentEntity */
 /** @typedef {import('./ComponentModel').VersionEntity} VersionEntity */
-/** @typedef {import('./ComponentModel').GroupQueryOptions} GroupQueryOptions */
 /** @typedef {import('./ComponentModel').ComponentQueryOptions} ComponentQueryOptions */
 /** @typedef {import('./ComponentModel').ComponentFilterOptions} ComponentFilterOptions */
 /** @typedef {import('./ComponentModel').VersionQueryOptions} VersionQueryOptions */
@@ -30,54 +27,39 @@ export class ComponentModel extends BaseModel {
    * @return {string[]} Component model excluded indexes
    */
   get componentExcludeIndexes() {
-    return ['version', 'versions[]', 'group', 'org', 'pkg', 'ref', 'scope'];
+    return ['version', 'versions[]', 'name', 'org', 'npmName', 'ref'];
   }
 
   /**
    * @return {string[]} Version model excluded indexes
    */
   get versionExcludeIndexes() {
-    return ['name', 'version', 'docs', 'changelog'];
+    return ['npmName', 'version'];
   }
 
   /**
-   * @param {string} name Group name
-   * @return {Key} A key for a group
-   */
-  createGroupKey(name) {
-    return this.store.key({
-      namespace: this.namespace,
-      path: [this.groupsKind, this.slug(name)],
-    });
-  }
-
-  /**
-   * @param {string} groupName Group name
-   * @param {string} componentName Component name
+   * @param {string} npmName The component's NPM name.
    * @return {Key} A key for a component
    */
-  createComponentKey(groupName, componentName) {
+  createComponentKey(npmName) {
     return this.store.key({
       namespace: this.namespace,
-      path: [this.groupsKind, this.slug(groupName), this.componentsKind, this.slug(componentName)],
+      path: [this.componentsKind, this.slug(npmName)],
     });
   }
 
   /**
    * Creates datastore key for version object
-   * @param {string} groupName Component's group
-   * @param {string} componentName Component name
+   * @param {string} npmName The component's NPM name.
    * @param {string} version Component version
    * @return {Key}
    */
-  createVersionKey(groupName, componentName, version) {
+  createVersionKey(npmName, version) {
     return this.store.key({
       namespace: this.namespace,
       path: [
-        this.groupsKind,
-        this.slug(groupName),
         this.componentsKind,
-        this.slug(componentName),
+        this.slug(npmName),
         this.versionsKind,
         version,
       ],
@@ -107,28 +89,6 @@ export class ComponentModel extends BaseModel {
   }
 
   /**
-   * Lists groups.
-   *
-   * @param {GroupQueryOptions=} opts Query options
-   * @return {Promise<GroupQueryResult>} Promise resolved to a list of components.
-   */
-  async listGroups(opts={}) {
-    const { limit=this.listLimit, pageToken } = opts;
-    let query = this.store.createQuery(this.namespace, this.groupsKind);
-    query = query.limit(limit);
-    if (pageToken) {
-      query = query.start(pageToken);
-    }
-    const [entitiesRaw, queryInfo] = await this.store.runQuery(query);
-    const entities = /** @type GroupEntity[] */ (entitiesRaw.map(this.fromDatastore.bind(this)));
-    const newPageToken = queryInfo.moreResults !== this.NO_MORE_RESULTS ? queryInfo.endCursor : undefined;
-    return {
-      entities,
-      pageToken: newPageToken,
-    };
-  }
-
-  /**
    * Creates an expanded entity definition for data communication.
    *
    * @param {Object} item Datastore entity for a component.
@@ -136,9 +96,7 @@ export class ComponentModel extends BaseModel {
    */
   _fromComponentDatastore(item) {
     delete item.ref;
-    const key = item[this.store.KEY];
     item.id = item[this.store.KEY].name;
-    item.groupId = key.parent.name;
     item.version = this.findLatestVersion(item.versions);
     return item;
   }
@@ -150,15 +108,11 @@ export class ComponentModel extends BaseModel {
    * @return {Promise<ComponentQueryResult>} Promise resolved to a list of components.
    */
   async listComponents(opts) {
-    const { limit=this.listLimit, pageToken, group } = opts;
+    const { limit=this.listLimit, pageToken } = opts;
     let query = this.store.createQuery(this.namespace, this.componentsKind);
     query = query.order('name', {
       descending: false,
     });
-    if (group) {
-      const key = this.createGroupKey(group);
-      query = query.hasAncestor(key);
-    }
     query = query.limit(limit);
     if (pageToken) {
       query = query.start(pageToken);
@@ -180,13 +134,9 @@ export class ComponentModel extends BaseModel {
    * @return {Promise<ComponentQueryResult>} Promise resolved to a list of components.
    */
   async queryComponents(opts) {
-    const { limit=this.listLimit, pageToken, group, tags } = opts;
+    const { limit=this.listLimit, pageToken, tags } = opts;
     let query = this.store.createQuery(this.namespace, this.componentsKind);
     query = query.order('name', { descending: false });
-    if (group) {
-      const key = this.createGroupKey(String(group));
-      query = query.hasAncestor(key);
-    }
     if (Array.isArray(tags)) {
       tags.forEach((tag) => {
         query = query.filter('tags', '=', String(tag));
@@ -252,14 +202,13 @@ export class ComponentModel extends BaseModel {
 
   /**
    * Lists version of a component.
-   * @param {string} group Component group id
-   * @param {string} component Component id
+   * @param {string} nameName The component's package name (scope + name)
    * @param {VersionQueryOptions=} opts Query options
    * @return {Promise<VersionQueryResult>}
    */
-  async listVersions(group, component, opts={}) {
+  async listVersions(nameName, opts={}) {
     const { limit=this.listLimit, pageToken } = opts;
-    const key = this.createComponentKey(group, component);
+    const key = this.createComponentKey(nameName);
     let query = this.store.createQuery(this.namespace, this.versionsKind).hasAncestor(key);
     query = query.order('name', { descending: false });
     query = query.order('created', {
@@ -285,82 +234,20 @@ export class ComponentModel extends BaseModel {
    * @return {Promise<void>}
    */
   async addVersion(info) {
-    const { group, component, version, pkg, org, docs, changeLog } = info;
-    await this.ensureGroup(group);
-    const cmp = await this.ensureComponent(version, component, group, pkg, org, {
+    const { npmName, version, name, org } = info;
+    const cmp = await this.ensureComponent(version, name, org, npmName, {
       keepTags: true,
     });
-    await this.ensureVersion(cmp, version, component, group, docs, changeLog);
-  }
-
-  /**
-   * Creates a group of components if it does not exist.
-   *
-   * @param {string} groupName Name of the group
-   * @return {Promise<GroupEntity>}
-   */
-  async ensureGroup(groupName) {
-    const key = this.createGroupKey(groupName);
-    let result;
-    try {
-      result = await this.getGroup(groupName);
-    } catch (_) {
-      // ...
-    }
-    if (!result) {
-      result = await this.createGroup(groupName, key);
-    }
-    return result;
-  }
-
-  /**
-   * Returns group model.
-   * @param {string} name Group name
-   * @return {Promise<GroupEntity|null>} Null when not found
-   */
-  async getGroup(name) {
-    const key = this.createGroupKey(name);
-    const [entity] = await this.store.get(key);
-    if (entity) {
-      return this.fromDatastore(entity);
-    }
-    return null;
-  }
-
-  /**
-   * Creates a component group entity.
-   *
-   * @param {string} name Name of the group
-   * @param {Key} key Key of the entity.
-   * @return {Promise<GroupEntity>} Generated model.
-   */
-  async createGroup(name, key) {
-    const data = [
-      {
-        name: 'name',
-        value: name,
-        excludeFromIndexes: true,
-      },
-    ];
-    const entity = {
-      key,
-      data,
-    };
-    await this.store.upsert(entity);
-    const [entry] = await this.store.get(key);
-    if (entry) {
-      return this.fromDatastore(entry);
-    }
+    await this.ensureVersion(cmp, version, npmName);
   }
 
   /**
    * Returns component definition.
-   * @param {string} groupName Group id
-   * @param {string} componentName Component id
+   * @param {string} npmName The component's package name (scope + name)
    * @return {Promise<ComponentEntity|null>}
    */
-  async getComponent(groupName, componentName) {
-    const key = this.createComponentKey(groupName, componentName);
+  async getComponent(npmName) {
+    const key = this.createComponentKey(npmName);
     const entity = await this.store.get(key);
     if (entity && entity[0]) {
       return this._fromComponentDatastore(entity[0]);
@@ -369,23 +256,33 @@ export class ComponentModel extends BaseModel {
   }
 
   /**
-   * Creates a component.
+   * Creates a new component entity.
    *
-   * @param {string} name Name of the group
+   * @param {string} name The GitHub name of the component's repository.
+   * @param {string} org GitHub's organization name the component is in.
+   * With the combination with the `name` it creates GitHub's URI.
+   * @param {string} npmName The component's package name (scope + name)
    * @param {string} version Component version
-   * @param {string} groupName Component's group
-   * @param {string} pkg Component package name
-   * @param {string} org Component organization
    * @param {Key} key Key of the entity.
    * @param {TagsProcessOptions=} tags Components tags.
    * @return {Promise<ComponentEntity>} Generated model.
    */
-  async createComponent(name, version, groupName, pkg, org, key, tags={}) {
+  async createComponent(name, org, npmName, version, key, tags={}) {
     const data = [
       {
         name: 'name',
         value: name,
         excludeFromIndexes: false,
+      },
+      {
+        name: 'org',
+        value: org,
+        excludeFromIndexes: true,
+      },
+      {
+        name: 'npmName',
+        value: npmName,
+        excludeFromIndexes: true,
       },
       {
         name: 'version',
@@ -395,21 +292,6 @@ export class ComponentModel extends BaseModel {
       {
         name: 'versions',
         value: [version],
-        excludeFromIndexes: true,
-      },
-      {
-        name: 'group',
-        value: groupName,
-        excludeFromIndexes: true,
-      },
-      {
-        name: 'pkg',
-        value: pkg,
-        excludeFromIndexes: true,
-      },
-      {
-        name: 'org',
-        value: org,
         excludeFromIndexes: true,
       },
     ];
@@ -435,15 +317,15 @@ export class ComponentModel extends BaseModel {
    * Test if component data are already stored and creates a model if not.
    *
    * @param {string} version Component version
-   * @param {string} componentName Component name
-   * @param {string} groupName Component's group
-   * @param {string} pkg Component package name
-   * @param {string} org Component organization
+   * @param {string} name The GitHub name of the component's repository.
+   * @param {string} org GitHub's organization name the component is in.
+   * With combination with the `name` it creates GitHub's URI.
+   * @param {string} npmName The component's package name (scope + name)
    * @param {TagsProcessOptions=} tags Components options.
    * @return {Promise<ComponentEntity>}
    */
-  async ensureComponent(version, componentName, groupName, pkg, org, tags) {
-    const key = this.createComponentKey(groupName, componentName);
+  async ensureComponent(version, name, org, npmName, tags) {
+    const key = this.createComponentKey(npmName);
     let data;
     try {
       [data] = await this.store.get(key);
@@ -451,7 +333,7 @@ export class ComponentModel extends BaseModel {
       // ...
     }
     if (!data) {
-      return this.createComponent(componentName, version, groupName, pkg, org, key, tags);
+      return this.createComponent(name, org, npmName, version, key, tags);
     }
     return this.addComponentVersion(data, version, key, tags);
   }
@@ -478,14 +360,15 @@ export class ComponentModel extends BaseModel {
       delete model.tags;
     }
 
-    if (model.versions.indexOf(version) === -1) {
+    if (!model.versions.includes(version)) {
       model.versions[model.versions.length] = version;
       if (!semver.prerelease(version)) {
-        model.version = version;
+        if (!model.version || semver.gt(version, model.version)) {
+          model.version = version;
+        }
       }
       changed = true;
     }
-
     if (changed) {
       const entity = {
         key,
@@ -504,36 +387,25 @@ export class ComponentModel extends BaseModel {
    *
    * @param {ComponentEntity} parent Parent component
    * @param {string} version Component version
-   * @param {string} componentName Component name
-   * @param {string} groupName Component's group
-   * @param {object} data Polymer analysis result
-   * @param {String=} changelog Version changelog
+   * @param {string} npmName The component's package name (scope + name)
    * @return {Promise<void>}
    */
-  async ensureVersion(parent, version, componentName, groupName, data, changelog) {
-    const key = this.createVersionKey(groupName, componentName, version);
-    let model;
+  async ensureVersion(parent, version, npmName) {
+    const key = this.createVersionKey(npmName, version);
+    let model = /** @type VersionEntity */ (null);
     try {
       [model] = await this.store.get(key);
     } catch (_) {
       // ...
     }
     if (!model) {
-      return this.createVersion(parent, version, componentName, groupName, data, changelog);
+      return this.createVersion(parent, version, npmName);
     }
-
     model.created = Date.now();
-    model.docs = JSON.stringify(data);
     if (Array.isArray(parent.tags)) {
       model.tags = parent.tags;
     } else if (model.tags) {
       delete model.tags;
-    }
-
-    if (changelog) {
-      model.changelog = changelog;
-    } else if (model.changelog) {
-      delete model.changelog;
     }
     const entity = {
       key,
@@ -548,23 +420,15 @@ export class ComponentModel extends BaseModel {
    *
    * @param {ComponentEntity} parent Parent component
    * @param {string} version Component version
-   * @param {string} componentName Component name
-   * @param {string} groupName Component's group
-   * @param {object} docs Polymer analysis result
-   * @param {string=} changelog
+   * @param {string} npmName The component's package name (scope + name)
    * @return {Promise<void>}
    */
-  async createVersion(parent, version, componentName, groupName, docs, changelog) {
-    const key = this.createVersionKey(groupName, componentName, version);
+  async createVersion(parent, version, npmName) {
+    const key = this.createVersionKey(npmName, version);
     const data = [
       {
-        name: 'name',
-        value: componentName,
-        excludeFromIndexes: true,
-      },
-      {
-        name: 'docs',
-        value: JSON.stringify(docs),
+        name: 'npmName',
+        value: npmName,
         excludeFromIndexes: true,
       },
       {
@@ -572,19 +436,17 @@ export class ComponentModel extends BaseModel {
         value: Date.now(),
         excludeFromIndexes: false,
       },
+      {
+        name: 'version',
+        value: version,
+        excludeFromIndexes: true,
+      },
     ];
     if (parent.tags) {
       data.push({
         name: 'tags',
         // @ts-ignore
         value: parent.tags,
-      });
-    }
-    if (changelog) {
-      data.push({
-        name: 'changelog',
-        value: changelog,
-        excludeFromIndexes: true,
       });
     }
     const entity = {
@@ -596,13 +458,12 @@ export class ComponentModel extends BaseModel {
 
   /**
    * Returns component definition.
-   * @param {string} groupName Group name
-   * @param {string} componentName Component name
+   * @param {string} npmName The component's package name (scope + name)
    * @param {string} version Version name.
    * @return {Promise<VersionEntity|null>}
    */
-  async getVersion(groupName, componentName, version) {
-    const key = this.createVersionKey(groupName, componentName, version);
+  async getVersion(npmName, version) {
+    const key = this.createVersionKey(npmName, version);
     const [entity] = await this.store.get(key);
     if (entity) {
       return this.fromDatastore(entity);
@@ -616,13 +477,13 @@ export class ComponentModel extends BaseModel {
    * @return {Promise<VersionQueryResult>}
    */
   async queryVersions(opts={}) {
-    const { limit=this.listLimit, pageToken, group, component, tags, since, until } = opts;
+    const { limit=this.listLimit, pageToken, npmName, tags, since, until } = opts;
     let query = this.store.createQuery(this.namespace, this.versionsKind);
     query = query.order('created', {
       descending: true,
     });
-    if (group && component) {
-      const key = this.createComponentKey(group, component);
+    if (npmName) {
+      const key = this.createComponentKey(npmName);
       query = query.hasAncestor(key);
     }
     if (tags && tags.length) {
@@ -656,13 +517,12 @@ export class ComponentModel extends BaseModel {
 
   /**
    * Updates properties of a component entity
-   * @param {string} groupName Name of component's group
-   * @param {string} componentName Name of the component
+   * @param {string} npmName The component's package name (scope + name)
    * @param {object} props
    * @return {Promise<void>}
    */
-  async updateComponentProperties(groupName, componentName, props) {
-    const key = this.createComponentKey(groupName, componentName);
+  async updateComponentProperties(npmName, props) {
+    const key = this.createComponentKey(npmName);
     const transaction = this.store.transaction();
     try {
       await transaction.run();

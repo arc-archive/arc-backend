@@ -3,7 +3,7 @@ import express from 'express';
 import { verifyToken } from '@advanced-rest-client/api-tokens';
 import { BaseApi } from './BaseApi.js';
 
-/** @typedef {import('./BaseApi').SessionRequest} Request */
+/** @typedef {import('../types').SessionRequest} Request */
 /** @typedef {import('express').Response} Response */
 
 const router = express.Router();

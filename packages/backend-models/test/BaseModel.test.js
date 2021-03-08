@@ -34,7 +34,6 @@ describe('BaseModel', () => {
       ['testKind', 'Test'],
       ['componentsKind', 'Component'],
       ['versionsKind', 'Version'],
-      ['groupsKind', 'Group'],
       ['organizationKind', 'Organization'],
       ['testLogsKind', 'TestComponentLogs'],
       ['userKind', 'User'],
@@ -70,7 +69,7 @@ describe('BaseModel', () => {
     it('creates a slug value', () => {
       const input = 'MyTest Value';
       const result = model.slug(input);
-      assert.equal(result, 'my-test-value');
+      assert.equal(result, 'mytest-value');
     });
   });
 

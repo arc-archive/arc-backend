@@ -17,7 +17,7 @@ export declare interface TokenCreateInfo {
 }
 
 /**
- * Token information struct after decoding it from the token string.
+ * Token information schema after decoding it from the token string.
  */
 export declare interface TokenInfo {
   /**
@@ -52,18 +52,18 @@ export declare interface TokenInfo {
 export declare function generateToken(user: UserEntity, createInfo: TokenCreateInfo): string;
 
 /**
- * Veryfies whether the token is valid for the session.
+ * Verifies whether the token is valid for the session.
  * @param token User token.
  * @returns Token info object.
  */
-export declare function verifyToken(token: string): Promise<object>;
+export declare function verifyToken(token: string): Promise<TokenInfo>;
 
 /**
  * Synchronously validates the token
  * @param token User token.
  * @returns Token info object.
  */
-export function verifyTokenSync(token: string): object;
+export function verifyTokenSync(token: string): TokenInfo;
 
 /**
  * Checks whether the token has required scope.

@@ -12,10 +12,9 @@ import { AmfTest, BottomUpTest } from '../src/types/ComponentTest';
 
 export declare interface ComponentInsertOptions {
   name?: string;
-  version?: string;
-  group?: string;
-  pkg?: string;
   org?: string;
+  npmName?: string;
+  version?: string;
 }
 export declare interface ComponentInsertResult extends ComponentInsertOptions {
   key?: entity.Key;
@@ -23,13 +22,10 @@ export declare interface ComponentInsertResult extends ComponentInsertOptions {
 }
 
 export declare interface CreateComponentVersionResult {
-  group: string;
-  component: string;
-  version: string;
-  pkg: string;
+  name: string;
   org: string;
-  docs: string;
-  changeLog: string;
+  npmName: string;
+  version: string;
 }
 
 export declare interface TokenCreateInfo {

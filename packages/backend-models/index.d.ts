@@ -20,9 +20,6 @@ export {
   ActiveUser,
 } from './src/AnalyticsModel';
 export {
-  GitHubBuildModel,
-} from './src/GitHubBuildModel';
-export {
   GithubBuild,
   GithubBuildEntity,
   GithubBuildQueryOptions,
@@ -30,13 +27,10 @@ export {
 } from './src/types/GitHubBuild';
 export {
   ComponentModel,
-  GroupEntity,
   ComponentEntity,
   VersionEntity,
-  GroupQueryResult,
   ComponentQueryResult,
   VersionQueryResult,
-  GroupQueryOptions,
   ComponentQueryOptions,
   ComponentFilterOptions,
   VersionQueryOptions,

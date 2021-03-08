@@ -6,6 +6,7 @@ import { BaseApi } from './BaseApi.js';
 
 /** @typedef {import('../types').SessionRequest} Request */
 /** @typedef {import('express').Response} Response */
+/** @typedef {import('@advanced-rest-client/backend-models').VersionQueryOptions} VersionQueryOptions */
 
 const router = express.Router();
 export default router;
@@ -127,21 +128,6 @@ class ComponentsApiRoute extends BaseApi {
   }
 
   /**
-   * Validates parent component parameters
-   * @param {Request} req
-   * @return {string|undefined} Error message or undefined if valid.
-   */
-  _validateParentParameters(req) {
-    const { group, component } = req.query;
-    if (group && !component) {
-      return 'The "component" parameter is required when "group" is used';
-    }
-    if (!group && component) {
-      return 'The "group" parameter is required when "component" is used';
-    }
-  }
-
-  /**
    * Route to list versions of a component.
    * @param {Request} req
    * @param {Response} res
@@ -163,24 +149,16 @@ class ComponentsApiRoute extends BaseApi {
       this.sendError(res, timeError);
       return;
     }
-    const groupError = this._validateParentParameters(req);
-    if (groupError) {
-      this.sendError(res, groupError);
-      return;
-    }
-    const { limit, pageToken, tags, group, component, since, until } = req.query;
-    const opts = {};
+    const { limit, pageToken, tags, npmName, since, until } = req.query;
+    const opts = /** @type VersionQueryOptions */ ({});
     if (limit) {
       opts.limit = Number(limit);
     }
     if (pageToken) {
       opts.pageToken = String(pageToken);
     }
-    if (component) {
-      opts.component = String(component);
-    }
-    if (group) {
-      opts.group = String(group);
+    if (npmName) {
+      opts.npmName = String(npmName);
     }
     if (Array.isArray(tags)) {
       const typedTags = /** @type string[] */ (tags);
@@ -219,15 +197,10 @@ class ComponentsApiRoute extends BaseApi {
    */
   async listParentComponents(req, res) {
     const { devDependencies } = req.query;
-    const { component } = req.params;
-    let { scope } = req.params;
-    if (scope[0] !== '@') {
-      scope = `@${scope}`;
-    }
+    const { npmName } = req.params;
     const dds = devDependencies === 'true';
-    const componentId = `${scope}/${component}`;
     try {
-      const result = await this.dependencyModel.listParentComponents(componentId, dds);
+      const result = await this.dependencyModel.listParentComponents(npmName, dds);
       this.sendListResult([result], res);
     } catch (cause) {
       logging.error(cause);
@@ -246,16 +219,9 @@ class ComponentsApiRoute extends BaseApi {
    * @return {Promise<void>}
    */
   async listDependencies(req, res) {
-    const { component } = req.params;
-    let { scope } = req.params;
-    if (scope[0] !== '@') {
-      scope = `@${scope}`;
-    }
-    // TODO (pawel): dependency keys are created in an invalid way
-    // const componentId = `${scope}/${component}`;
-    const componentId = `${component}`;
+    const { npmName } = req.params;
     try {
-      const data = await this.dependencyModel.get(componentId);
+      const data = await this.dependencyModel.get(npmName);
       if (data) {
         const result = [];
         if (data.dependencies) {

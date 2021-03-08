@@ -4,7 +4,6 @@ const { assert } = pkg;
 import { ComponentModel } from '../src/ComponentModel.js';
 import DataHelper from './DataHelper.js';
 
-/** @typedef {import('../src/ComponentBuildModel').EditableComponentBuildEntity} EditableComponentBuildEntity */
 /** @typedef {import('./DataHelper').ComponentInsertResult} ComponentInsertResult */
 
 describe('ComponentModel', () => {
@@ -37,7 +36,7 @@ describe('ComponentModel', () => {
     });
 
     [
-      'version', 'versions[]', 'group', 'org', 'pkg', 'ref', 'scope',
+      'version', 'versions[]', 'name', 'org', 'npmName', 'ref',
     ]
     .forEach((name) => {
       it(`has ${name}`, () => {
@@ -59,40 +58,13 @@ describe('ComponentModel', () => {
     });
 
     [
-      'name', 'version', 'docs', 'changelog',
+      'npmName', 'version',
     ]
     .forEach((name) => {
       it(`has ${name}`, () => {
         const result = model.versionExcludeIndexes;
         assert.include(result, name);
       });
-    });
-  });
-
-  describe('createGroupKey()', () => {
-    let model = /** @type ComponentModel */ (null);
-    beforeEach(() => {
-      model = new ComponentModel();
-    });
-
-    it('creates a key', () => {
-      const result = model.createGroupKey('a name');
-      assert.typeOf(result, 'object');
-    });
-
-    it('has the namespace', () => {
-      const result = model.createGroupKey('a name');
-      assert.equal(result.namespace, model.namespace);
-    });
-
-    it('has the name', () => {
-      const result = model.createGroupKey('a name');
-      assert.equal(result.name, 'a-name');
-    });
-
-    it('has the kind', () => {
-      const result = model.createGroupKey('a name');
-      assert.equal(result.kind, model.groupsKind);
     });
   });
 
@@ -103,38 +75,23 @@ describe('ComponentModel', () => {
     });
 
     it('creates a key', () => {
-      const result = model.createComponentKey('group', 'name');
+      const result = model.createComponentKey('repo/name');
       assert.typeOf(result, 'object');
     });
 
     it('has the namespace', () => {
-      const result = model.createComponentKey('group', 'name');
+      const result = model.createComponentKey('repo/name');
       assert.equal(result.namespace, model.namespace);
     });
 
     it('has the name', () => {
-      const result = model.createComponentKey('group', 'a name');
-      assert.equal(result.name, 'a-name');
+      const result = model.createComponentKey('repo/name');
+      assert.equal(result.name, 'reponame');
     });
 
     it('has the kind', () => {
-      const result = model.createComponentKey('group', 'name');
+      const result = model.createComponentKey('repo/name');
       assert.equal(result.kind, model.componentsKind);
-    });
-
-    it('has the parent', () => {
-      const result = model.createComponentKey('group', 'name');
-      assert.typeOf(result.parent, 'object');
-    });
-
-    it('has the parent with group kind', () => {
-      const result = model.createComponentKey('group', 'name');
-      assert.equal(result.parent.kind, model.groupsKind);
-    });
-
-    it('has the parent with name', () => {
-      const result = model.createComponentKey('a group', 'name');
-      assert.equal(result.parent.name, 'a-group');
     });
   });
 
@@ -145,38 +102,38 @@ describe('ComponentModel', () => {
     });
 
     it('creates a key', () => {
-      const result = model.createVersionKey('group', 'name', '1.0.0');
+      const result = model.createVersionKey('repo/name', '1.0.0');
       assert.typeOf(result, 'object');
     });
 
     it('has the namespace', () => {
-      const result = model.createVersionKey('group', 'name', '1.0.0');
+      const result = model.createVersionKey('repo/name', '1.0.0');
       assert.equal(result.namespace, model.namespace);
     });
 
     it('has the name', () => {
-      const result = model.createVersionKey('group', 'a name', '1.0.0');
+      const result = model.createVersionKey('repo/name', '1.0.0');
       assert.equal(result.name, '1.0.0');
     });
 
     it('has the kind', () => {
-      const result = model.createVersionKey('group', 'name', '1.0.0');
+      const result = model.createVersionKey('repo/name', '1.0.0');
       assert.equal(result.kind, model.versionsKind);
     });
 
     it('has the parent', () => {
-      const result = model.createVersionKey('group', 'name', '1.0.0');
+      const result = model.createVersionKey('repo/name', '1.0.0');
       assert.typeOf(result.parent, 'object');
     });
 
-    it('has the parent with group kind', () => {
-      const result = model.createVersionKey('group', 'name', '1.0.0');
+    it('has the parent with kind', () => {
+      const result = model.createVersionKey('repo/name', '1.0.0');
       assert.equal(result.parent.kind, model.componentsKind);
     });
 
     it('has the parent with name', () => {
-      const result = model.createVersionKey('group', 'a name', '1.0.0');
-      assert.equal(result.parent.name, 'a-name');
+      const result = model.createVersionKey('repo/name', '1.0.0');
+      assert.equal(result.parent.name, 'reponame');
     });
   });
 
@@ -222,135 +179,62 @@ describe('ComponentModel', () => {
     });
   });
 
-  describe('createGroup()', () => {
-    let model = /** @type ComponentModel */ (null);
-    beforeEach(() => {
-      model = new ComponentModel();
-    });
-
-    after(async () => {
-      const inst = new ComponentModel();
-      await DataHelper.deleteEntities(inst, inst.groupsKind);
-    });
-
-    it('returns created entity', async () => {
-      const name = 'my group';
-      const key = model.createGroupKey(name);
-      const result = await model.createGroup(name, key);
-      assert.typeOf(result, 'object', 'entity is an object');
-      assert.equal(result.name, name, 'has name');
-      assert.equal(result.id, 'my-group', 'has id');
-    });
-  });
-
-  describe('getGroup()', () => {
-    let model = /** @type ComponentModel */ (null);
-    const name = 'test name';
-    beforeEach(async () => {
-      model = new ComponentModel();
-      await DataHelper.insertComponentGroup(model, name);
-    });
-
-    afterEach(async () => {
-      const inst = new ComponentModel();
-      await DataHelper.deleteEntities(inst, inst.groupsKind);
-    });
-
-    it('returns created entity', async () => {
-      const result = await model.getGroup(name);
-      assert.typeOf(result, 'object', 'entity is an object');
-      assert.equal(result.name, name, name);
-    });
-
-    it('returns null when no entity', async () => {
-      const result = await model.getGroup('none123');
-      assert.equal(result, null);
-    });
-  });
-
-  describe('ensureGroup()', () => {
-    let model = /** @type ComponentModel */ (null);
-    const name = 'test name';
-    beforeEach(async () => {
-      model = new ComponentModel();
-      await DataHelper.insertComponentGroup(model, name);
-    });
-
-    afterEach(async () => {
-      const inst = new ComponentModel();
-      await DataHelper.deleteEntities(inst, inst.groupsKind);
-    });
-
-    it('returns existing entity', async () => {
-      const result = await model.ensureGroup(name);
-      assert.typeOf(result, 'object', 'entity is an object');
-      assert.equal(result.name, name);
-    });
-
-    it('returns new entity', async () => {
-      const newName = 'other name';
-      const result = await model.ensureGroup(newName);
-      assert.typeOf(result, 'object', 'entity is an object');
-      assert.equal(result.name, newName);
-    });
-  });
-
   describe('createComponent()', () => {
     let model = /** @type ComponentModel */ (null);
-    const groupName = 'group name';
+    const npmName = '@advanced-rest-client/test component';
     const name = 'test component';
+    const org = 'advanced-rest-client';
+
     beforeEach(async () => {
       model = new ComponentModel();
-      const key = model.createGroupKey(groupName);
-      await model.createGroup(groupName, key);
     });
 
     afterEach(async () => {
-      await DataHelper.deleteEntities(model, model.groupsKind);
+      await DataHelper.deleteEntities(model, model.componentsKind);
     });
 
     it('returns created entity', async () => {
-      const key = model.createComponentKey(groupName, name);
-      const result = await model.createComponent(name, '0.1.0', groupName, 'a', 'b', key);
+      const key = model.createComponentKey(npmName);
+      const result = await model.createComponent(name, org, npmName, '0.1.0', key);
       assert.typeOf(result, 'object', 'entity is an object');
-      assert.equal(result.name, name, 'has name');
-      assert.equal(result.id, 'test-component', 'has id');
+      assert.equal(result.name, 'test component', 'has name');
+      assert.equal(result.id, 'advanced-rest-clienttest-component', 'has id');
     });
 
     it('adds version', async () => {
-      const key = model.createComponentKey(groupName, name);
-      const result = await model.createComponent(name, '0.1.0', groupName, 'a', 'b', key);
+      const key = model.createComponentKey(npmName);
+      const result = await model.createComponent(name, org, npmName, '0.1.0', key);
       assert.equal(result.version, '0.1.0');
     });
 
     it('adds versions', async () => {
-      const key = model.createComponentKey(groupName, name);
-      const result = await model.createComponent(name, '0.1.0', groupName, 'a', 'b', key);
+      const key = model.createComponentKey(npmName);
+      const result = await model.createComponent(name, org, npmName, '0.1.0', key);
       assert.deepEqual(result.versions, ['0.1.0']);
     });
 
-    it('adds group', async () => {
-      const key = model.createComponentKey(groupName, name);
-      const result = await model.createComponent(name, '0.1.0', groupName, 'a', 'b', key);
-      assert.deepEqual(result.group, groupName);
-    });
-
-    it('adds pkg', async () => {
-      const key = model.createComponentKey(groupName, name);
-      const result = await model.createComponent(name, '0.1.0', groupName, 'a', 'b', key);
-      assert.deepEqual(result.pkg, 'a');
+    it('adds name', async () => {
+      const key = model.createComponentKey(npmName);
+      const result = await model.createComponent(name, org, npmName, '0.1.0', key);
+      assert.deepEqual(result.name, name);
     });
 
     it('adds org', async () => {
-      const key = model.createComponentKey(groupName, name);
-      const result = await model.createComponent(name, '0.1.0', groupName, 'a', 'b', key);
-      assert.deepEqual(result.org, 'b');
+      const key = model.createComponentKey(npmName);
+      const result = await model.createComponent(name, org, npmName, '0.1.0', key);
+      assert.deepEqual(result.org, org);
+    });
+
+    it('adds npmName', async () => {
+      const key = model.createComponentKey(npmName);
+      const result = await model.createComponent(name, org, npmName, '0.1.0', key);
+      assert.deepEqual(result.npmName, npmName);
     });
   });
 
   describe('getComponent()', () => {
     let model = /** @type ComponentModel */ (null);
-    let created;
+    let created = /** @type ComponentInsertResult */ (null);
     beforeEach(async () => {
       model = new ComponentModel();
       created = await DataHelper.insertComponent(model, {});
@@ -358,22 +242,17 @@ describe('ComponentModel', () => {
 
     afterEach(async () => {
       const inst = new ComponentModel();
-      await DataHelper.deleteEntities(inst, inst.groupsKind);
+      await DataHelper.deleteEntities(inst, inst.componentsKind);
     });
 
     it('returns created entity', async () => {
-      const result = await model.getComponent(created.group, created.name);
+      const result = await model.getComponent(created.npmName);
       assert.typeOf(result, 'object', 'entity is an object');
       assert.equal(result.name, created.name);
     });
 
     it('returns null when no entity', async () => {
-      const result = await model.getComponent(created.group, 'none123');
-      assert.equal(result, null);
-    });
-
-    it('returns null when no group', async () => {
-      const result = await model.getComponent('none123', created.name);
+      const result = await model.getComponent('none123');
       assert.equal(result, null);
     });
   });
@@ -388,12 +267,12 @@ describe('ComponentModel', () => {
 
     afterEach(async () => {
       const inst = new ComponentModel();
-      await DataHelper.deleteEntities(inst, inst.groupsKind);
+      await DataHelper.deleteEntities(inst, inst.componentsKind);
     });
 
     it('returns existing entity', async () => {
       const result = await model.ensureComponent(
-        created.version, created.name, created.group, created.pkg, created.org,
+        created.version, created.name, created.org, created.npmName,
       );
       assert.typeOf(result, 'object', 'entity is an object');
       assert.equal(result.name, created.name);
@@ -401,7 +280,7 @@ describe('ComponentModel', () => {
 
     it('returns new entity', async () => {
       const newName = 'other name';
-      const result = await model.ensureComponent('1.2.3', newName, created.group, created.pkg, created.org);
+      const result = await model.ensureComponent('1.2.3', newName, created.org, `@other/package`);
       assert.typeOf(result, 'object', 'entity is an object');
       assert.equal(result.name, newName);
     });
@@ -414,27 +293,20 @@ describe('ComponentModel', () => {
     });
 
     afterEach(async () => {
-      await DataHelper.deleteEntities(model, model.groupsKind);
+      await DataHelper.deleteEntities(model, model.componentsKind);
     });
 
-    it('creates a group', async () => {
+    it('creates a component', async () => {
       const version = DataHelper.generateComponentVersion();
       await model.addVersion(version);
-      const result = await model.getGroup(version.group);
-      assert.typeOf(result, 'object');
-    });
-
-    it('creates a componrnt', async () => {
-      const version = DataHelper.generateComponentVersion();
-      await model.addVersion(version);
-      const result = await model.getComponent(version.group, version.component);
+      const result = await model.getComponent(version.npmName);
       assert.typeOf(result, 'object');
     });
 
     it('creates a version', async () => {
       const version = DataHelper.generateComponentVersion();
       await model.addVersion(version);
-      const result = await model.getVersion(version.group, version.component, version.version);
+      const result = await model.getVersion(version.npmName, version.version);
       assert.typeOf(result, 'object');
     });
   });
@@ -446,56 +318,47 @@ describe('ComponentModel', () => {
     });
 
     afterEach(async () => {
-      await DataHelper.deleteEntities(model, model.groupsKind);
+      await DataHelper.deleteEntities(model, model.componentsKind);
     });
 
     it('updates version that already exists', async () => {
       const version = DataHelper.generateComponentVersion();
       await model.addVersion(version);
-      const parent = await model.getComponent(version.group, version.component);
-      await model.ensureVersion(parent, version.version, version.component, version.group, { test: true });
-      const result = await model.getVersion(version.group, version.component, version.version);
-      assert.equal(result.docs, '{"test":true}');
+      const parent = await model.getComponent(version.npmName);
+      await model.ensureVersion(parent, version.version, version.npmName);
+      const result = await model.getVersion(version.npmName, version.version);
+      assert.equal(result.version, version.version);
     });
 
     it('creates a new version', async () => {
       const newVersion = '1.2.3';
       const version = DataHelper.generateComponentVersion();
       await model.addVersion(version);
-      const oldVersion = await model.getVersion(version.group, version.component, version.version);
-      const parent = await model.getComponent(version.group, version.component);
-      await model.ensureVersion(parent, newVersion, version.component, version.group, { test: true });
-      const result = await model.getVersion(version.group, version.component, newVersion);
+      const oldVersion = await model.getVersion(version.npmName, version.version);
+      const parent = await model.getComponent(version.npmName);
+      await model.ensureVersion(parent, newVersion, version.npmName);
+      const result = await model.getVersion(version.npmName, newVersion);
       assert.notEqual(result.id, oldVersion.id);
     });
 
     it('adds "created"', async () => {
       const version = DataHelper.generateComponentVersion();
       await model.addVersion(version);
-      const parent = await model.getComponent(version.group, version.component);
-      await model.ensureVersion(parent, version.version, version.component, version.group, { test: true });
-      const result = await model.getVersion(version.group, version.component, version.version);
+      const parent = await model.getComponent(version.npmName);
+      await model.ensureVersion(parent, version.version, version.npmName);
+      const result = await model.getVersion(version.npmName, version.version);
       assert.typeOf(result.created, 'number');
-    });
-
-    it('adds "docs"', async () => {
-      const version = DataHelper.generateComponentVersion();
-      await model.addVersion(version);
-      const parent = await model.getComponent(version.group, version.component);
-      await model.ensureVersion(parent, version.version, version.component, version.group, { test: false });
-      const result = await model.getVersion(version.group, version.component, version.version);
-      assert.equal(result.docs, '{"test":false}');
     });
 
     it('adds parents "tags"', async () => {
       const version = DataHelper.generateComponentVersion();
       const tags = ['a', 'b', 'c'];
       await model.ensureComponent(
-        version.version, version.component, version.group, version.pkg, version.org, { tags },
+        version.version, version.name, version.org, version.npmName, { tags },
       );
-      const parent = await model.getComponent(version.group, version.component);
-      await model.ensureVersion(parent, version.version, version.component, version.group, { test: false });
-      const result = await model.getVersion(version.group, version.component, version.version);
+      const parent = await model.getComponent(version.npmName);
+      await model.ensureVersion(parent, version.version, version.npmName);
+      const result = await model.getVersion(version.npmName, version.version);
       assert.deepEqual(result.tags, tags);
     });
 
@@ -503,23 +366,14 @@ describe('ComponentModel', () => {
       const version = DataHelper.generateComponentVersion();
       const tags = ['a', 'b', 'c'];
       await model.ensureComponent(
-        version.version, version.component, version.group, version.pkg, version.org, { tags },
+        version.version, version.name, version.org, version.npmName, { tags },
       );
-      const parent = await model.getComponent(version.group, version.component);
-      await model.ensureVersion(parent, version.version, version.component, version.group, { test: false });
+      const parent = await model.getComponent(version.npmName);
+      await model.ensureVersion(parent, version.version, version.npmName);
       delete parent.tags;
-      await model.ensureVersion(parent, version.version, version.component, version.group, { test: false });
-      const result = await model.getVersion(version.group, version.component, version.version);
+      await model.ensureVersion(parent, version.version, version.npmName);
+      const result = await model.getVersion(version.npmName, version.version);
       assert.isUndefined(result.tags);
-    });
-
-    it('adds "changelog"', async () => {
-      const version = DataHelper.generateComponentVersion();
-      await model.ensureComponent(version.version, version.component, version.group, version.pkg, version.org);
-      const parent = await model.getComponent(version.group, version.component);
-      await model.ensureVersion(parent, version.version, version.component, version.group, { }, 'change');
-      const result = await model.getVersion(version.group, version.component, version.version);
-      assert.deepEqual(result.changelog, 'change');
     });
   });
 
@@ -533,36 +387,36 @@ describe('ComponentModel', () => {
 
     afterEach(async () => {
       const inst = new ComponentModel();
-      await DataHelper.deleteEntities(inst, inst.groupsKind);
+      await DataHelper.deleteEntities(inst, inst.componentsKind);
     });
 
     it('adds a new version information to the component', async () => {
-      const { key, group, name: component, version } = created;
-      const cmp = await model.getComponent(group, component);
+      const { key, npmName, version } = created;
+      const cmp = await model.getComponent(npmName);
       const result = await model.addComponentVersion(cmp, '10.1.10', key);
       assert.deepEqual(result.versions, [version, '10.1.10'], 'adds version to the list of version');
       assert.equal(result.version, '10.1.10', 'updates the version');
     });
 
     it('adds a new pre-release version information to the component', async () => {
-      const { key, group, name: component, version } = created;
-      const cmp = await model.getComponent(group, component);
+      const { key, npmName, version } = created;
+      const cmp = await model.getComponent(npmName);
       const result = await model.addComponentVersion(cmp, '10.1.10-beta', key);
       assert.deepEqual(result.versions, [version, '10.1.10-beta'], 'adds version to the list of version');
       assert.equal(result.version, version, 'keeps old stable version version');
     });
 
     it('adds tags to the component', async () => {
-      const { key, group, name: component } = created;
-      const cmp = await model.getComponent(group, component);
+      const { key, npmName } = created;
+      const cmp = await model.getComponent(npmName);
       const tags = ['a', 'b', 'c'];
       const result = await model.addComponentVersion(cmp, '10.1.10', key, { tags });
       assert.deepEqual(result.tags, tags);
     });
 
     it('keeps tags when set', async () => {
-      const { key, group, name: component } = created;
-      const cmp = await model.getComponent(group, component);
+      const { key, npmName } = created;
+      const cmp = await model.getComponent(npmName);
       const tags = ['a', 'b', 'c'];
       const cmp2 = await model.addComponentVersion(cmp, '10.1.10', key, { tags });
       const result = await model.addComponentVersion(cmp2, '10.1.11', key, { keepTags: true });
@@ -570,8 +424,8 @@ describe('ComponentModel', () => {
     });
 
     it('removes tags when removed from the parent', async () => {
-      const { key, group, name: component } = created;
-      const cmp = await model.getComponent(group, component);
+      const { key, npmName } = created;
+      const cmp = await model.getComponent(npmName);
       const tags = ['a', 'b', 'c'];
       const cmp2 = await model.addComponentVersion(cmp, '10.1.10', key, { tags });
       const result = await model.addComponentVersion(cmp2, '10.1.11', key);

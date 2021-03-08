@@ -37,7 +37,7 @@ export function generateToken(user, createInfo) {
 }
 
 /**
- * Veryfies whether the token is valid for the session.
+ * Verifies whether the token is valid for the session.
  * @param {string} token User token.
  * @return {Promise<TokenInfo>} Token info object.
  */
@@ -48,17 +48,17 @@ export function verifyToken(token) {
         let msg;
         switch (err.message) {
           case 'invalid audience':
-            msg = 'Token audinece is invalid';
+            msg = 'Token audience is invalid';
             break;
           case 'invalid issuer':
             msg = 'Token issuer (source) is invalid';
             break;
           case 'jwt expired':
-            msg = `Token expored at ${err.expiredAt}`;
+            msg = `Token expired at ${err.expiredAt}`;
             break;
           case 'jwt signature is required':
           case 'invalid signature':
-            msg = 'Singature is invalid';
+            msg = 'Signature is invalid';
             break;
           case 'jwt malformed':
             msg = 'Malformed token';

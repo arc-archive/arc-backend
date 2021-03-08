@@ -54,13 +54,6 @@ export class BaseModel {
   /**
    * @return {string} The kind value for groups
    */
-  get groupsKind() {
-    return 'Group';
-  }
-
-  /**
-   * @return {string} The kind value for groups
-   */
   get organizationKind() {
     return 'Organization';
   }

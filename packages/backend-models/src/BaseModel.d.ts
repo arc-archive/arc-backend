@@ -40,94 +40,89 @@ export declare class BaseModel {
   constructor(namespace: string);
 
   /**
-   * @returns A symbol representing no more results in the data store
+   * A symbol representing no more results in the data store
    */
-  readonly NO_MORE_RESULTS: string;
+  get NO_MORE_RESULTS(): string;
 
   /**
-   * @returns The kind value for tests
+   * The kind value for tests
    */
-  readonly testKind: string;
+   get testKind(): string;
 
   /**
-   * @returns The kind value for components
+   * The kind value for components
    */
-  readonly componentsKind: string;
+   get componentsKind(): string;
 
   /**
-   * @returns The kind value for versions
+   * The kind value for versions
    */
-  readonly versionsKind: string;
+   get versionsKind(): string;
 
   /**
-   * @returns The kind value for groups
+   * The kind value for groups
    */
-  readonly groupsKind: string;
+   get organizationKind(): string;
 
   /**
-   * @returns The kind value for groups
+   * The kind value for test logs
    */
-  readonly organizationKind: string;
+   get testLogsKind(): string;
 
   /**
-   * @returns The kind value for test logs
+   * The kind value for users
    */
-  readonly testLogsKind: string;
+   get userKind(): string;
 
   /**
-   * @returns The kind value for users
+   * The kind value for JWT tokens
    */
-  readonly userKind: string;
+   get tokenKind(): string;
 
   /**
-   * @returns The kind value for JWT tokens
+   * The kind value for builds
    */
-  readonly tokenKind: string;
+   get buildKind(): string;
 
   /**
-   * @returns The kind value for builds
+   * The kind value for messages (ARC messages)
    */
-  readonly buildKind: string;
+   get messageKind(): string;
 
   /**
-   * @returns The kind value for messages (ARC messages)
+   * The kind value for dependencies
    */
-  readonly messageKind: string;
+   get dependencyKind(): string;
 
   /**
-   * @returns The kind value for dependencies
+   * The kind value for coverage run
    */
-  readonly dependencyKind: string;
+   get coverageRunKind(): string;
 
   /**
-   * @returns The kind value for coverage run
+   * The kind value for coverage run
    */
-  readonly coverageRunKind: string;
+   get coverageComponentKind(): string;
 
   /**
-   * @returns The kind value for coverage run
+   * The namespace value for users
    */
-  readonly coverageComponentKind: string;
+   get apicUsersNamespace(): string;
 
   /**
-   * @returns The namespace value for users
+   * The namespace value for tests
    */
-  readonly apicUsersNamespace: string;
+   get apicTestsNamespace(): string;
 
   /**
-   * @returns The namespace value for tests
+   * The namespace value for builds
    */
-  readonly apicTestsNamespace: string;
+   get buildsNamespace(): string;
 
   /**
-   * @returns The namespace value for builds
+   * The namespace value for coverage
    */
-  readonly buildsNamespace: string;
-
-  /**
-   * @returns The namespace value for coverage
-   */
-  readonly coverageNamespace: string;
+   get coverageNamespace(): string;
 
   /**
    * Creates a slug from a string.

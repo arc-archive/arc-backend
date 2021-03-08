@@ -23,7 +23,6 @@ import config from '@advanced-rest-client/backend-config';
 /**
  * A class that contains logic to communicate with the background
  * apps through the PubSub system.
- * @extends EventEmitter
  */
 class Background extends EventEmitter {
   /**
@@ -31,10 +30,6 @@ class Background extends EventEmitter {
    */
   constructor() {
     super();
-    /**
-     * @type {string}
-     */
-    this.topicGhWebhook = 'apic-gh-webhook';
 
     /**
      * @type {string}
@@ -52,32 +47,6 @@ class Background extends EventEmitter {
     this.pubsub = new PubSub({
       projectId: config.get('GCLOUD_PROJECT'),
     });
-  }
-
-  /**
-   * Sends information to the background worker to queue a build
-   * @param {string} id Build id
-   * @return {Promise<void>}
-   */
-  async queueStageBuild(id) {
-    const data = {
-      action: 'process-build',
-      id,
-    };
-    await this.publish(data, this.topicGhWebhook);
-  }
-
-  /**
-   * Sends information to the background worker to remove build from it's queue.
-   * @param {string} id Build id
-   * @return {Promise<void>}
-   */
-  async dequeueBuild(id) {
-    const data = {
-      action: 'remove-build',
-      id,
-    };
-    await this.publish(data, this.topicGhWebhook);
   }
 
   /**

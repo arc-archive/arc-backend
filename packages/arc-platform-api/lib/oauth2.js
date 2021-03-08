@@ -41,6 +41,7 @@ const strategyConfig = {
 passport.use(new GoogleStrategy(strategyConfig, profileCallback));
 
 passport.serializeUser((user, cb) => {
+  // @ts-ignore
   cb(null, user.id);
 });
 

@@ -1,5 +1,4 @@
 /* eslint-disable require-jsdoc */
-import Emulator from 'google-datastore-emulator';
 import chaiPkg from 'chai';
 // import Chance from 'chance';
 import { TestModel } from '@advanced-rest-client/backend-models';
@@ -19,17 +18,6 @@ const port = config.get('PORT');
 const baseUri = `http://localhost:${port}/v2/ci/`;
 
 describe('TestApiRoute', () => {
-  process.env.GCLOUD_PROJECT = 'advancedrestclient-1155';
-  let emulator = /** @type Emulator */ (null);
-  before(async () => {
-    emulator = new Emulator({ consistency: '1.0' });
-    await emulator.start();
-  });
-
-  after(async () => {
-    await emulator.stop();
-  });
-
   describe('/', () => {
     const testsRoute = `${baseUri}tests`;
 
@@ -262,7 +250,7 @@ describe('TestApiRoute', () => {
     });
   });
 
-  describe('/{testId}', () => {
+  describe('/{testId}/restart', () => {
     const testsRoute = `${baseUri}tests`;
 
     describe('PUT (restart)', () => {

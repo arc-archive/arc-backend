@@ -34,11 +34,11 @@
   },
   "dependencies": {
     "esm": "^3.2.25",
-    "nconf": "^0.10.0"
+    "nconf": "^0.11.2"
   },
   "devDependencies": {
     "@types/nconf": "^0.10.0",
-    "chai": "^4.2.0"
+    "chai": "^4.3.3"
   },
   "publishConfig": {
     "access": "public"

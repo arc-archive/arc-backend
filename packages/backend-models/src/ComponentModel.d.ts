@@ -1,43 +1,59 @@
 import { BaseModel, Entity, QueryResult, QueryOptions } from './BaseModel.js';
 import {entity} from '@google-cloud/datastore/build/src/entity';
 
-export interface GroupEntity extends Entity {
-  name: string;
-}
-
 export interface ComponentEntity extends Entity {
+  /**
+   * The GitHub name of the component's repository.
+   */
   name: string;
-  version: string;
-  versions: string[];
-  group: string;
-  pkg: string;
+  /**
+   * GitHub's organization name the component is in.
+   * With combination with the `name` it creates GitHub's URI.
+   */
   org: string;
-  groupId: string;
+  /**
+   * The component's package name (scope + name)
+   */
+  npmName: string;
+  /**
+   * The latest version of the component. This is the last highest release.
+   */
+  version: string;
+  /**
+   * The list of version names of the component.
+   */
+  versions: string[];
+  /**
+   * A list of tags associated with the component. For the internal use of the CI.
+   */
   tags?: string[];
 }
 
 export interface VersionEntity extends Entity {
-  name: string;
-  docs: string;
+  /**
+   * The component's package name (scope + name)
+   */
+  npmName: string;
+  /**
+   * The timestamp when the component was created.
+   */
   created: number;
+  /**
+   * A list of tags associated with the component. For the internal use of the CI.
+   */
   tags?: string[];
-  changelog?: string;
+  /**
+   * The version name of the component.
+   */
+  version: string;
 }
 
-export declare interface GroupQueryResult extends QueryResult<GroupEntity> {}
 export declare interface ComponentQueryResult extends QueryResult<ComponentEntity> {}
 export declare interface VersionQueryResult extends QueryResult<VersionEntity> {}
 
-export declare interface GroupQueryOptions extends QueryOptions {}
-export declare interface ComponentQueryOptions extends QueryOptions {
-  group?: string;
-}
+export declare interface ComponentQueryOptions extends QueryOptions {}
 
 export declare interface ComponentFilterOptions extends QueryOptions {
-  /**
-   * Group name, when set it limits results to a specific group
-   */
-  group?: string;
   /**
    * List of tags to filter the components for.
    */
@@ -45,8 +61,13 @@ export declare interface ComponentFilterOptions extends QueryOptions {
 }
 
 export declare interface VersionQueryOptions extends QueryOptions {
-  component?: string;
-  group?: string;
+  /**
+   * The component's package name (scope + name)
+   */
+  npmName?: string;
+  /**
+   * A list of tags associated with the component. For the internal use of the CI.
+   */
   tags?: string[];
   since?: number;
   until?: number;
@@ -58,29 +79,18 @@ export declare interface VersionCreateOptions {
    */
   version: string;
   /**
-   * Component name
+   * Component name (NPM scope + name)
    */
-  component: string;
+  npmName: string;
   /**
-   * Component group
+   * The GitHub name of the component's repository.
    */
-  group: string;
-  /**
-   * Component package name
-   */
-  pkg: string;
-  /**
-   * Component GitHub organization name
-   */
+  name: string;
+   /**
+    * GitHub's organization name the component is in.
+    * With combination with the `name` it creates GitHub's URI.
+    */
   org: string;
-  /**
-   * Documentation data.
-   */
-  docs: string;
-  /**
-   * Changelog string to store with version
-   */
-  changeLog: string;
 }
 
 export declare interface TagsProcessOptions {
@@ -101,33 +111,25 @@ export declare class ComponentModel extends BaseModel {
   /**
    * Component model excluded indexes
    */
-  readonly componentExcludeIndexes: string[];
+  get componentExcludeIndexes(): string[];
   /**
    * Version model excluded indexes
    */
-  readonly versionExcludeIndexes: string[];
+  get versionExcludeIndexes(): string[];
   constructor();
 
   /**
-   * @param name Group name
-   * @returns A key for a group
-   */
-  createGroupKey(name: string): entity.Key;
-
-  /**
-   * @param groupName Group name
-   * @param componentName Component name
+   * @param npmName The component's NPM name.
    * @returns A key for a component
    */
-  createComponentKey(groupName: string, componentName: string): entity.Key;
+  createComponentKey(npmName: string): entity.Key;
 
   /**
    * Creates datastore key for version object
-   * @param groupName Component's group
-   * @param componentName Component name
+   * @param npmName The component's NPM name.
    * @param version Component version
    */
-  createVersionKey(groupName: string, componentName: string, version: string): entity.Key;
+  createVersionKey(npmName: string, version: string): entity.Key;
 
   /**
    * Finds largest non-pre-release version in the list of versions.
@@ -135,14 +137,6 @@ export declare class ComponentModel extends BaseModel {
    * @returns Largest version in the list.
    */
   findLatestVersion(range: string[]): string;
-
-  /**
-   * Lists groups.
-   *
-   * @param opts Query options
-   * @returns Promise resolved to a list of components.
-   */
-  listGroups(opts?: GroupQueryOptions): Promise<GroupQueryResult>;
 
   /**
    * Creates an expanded entity definition for data communication.
@@ -197,11 +191,10 @@ export declare class ComponentModel extends BaseModel {
 
   /**
    * Lists version of a component.
-   * @param group Component group id
-   * @param component Component id
+   * @param nameName The component's package name (scope + name)
    * @param  Query options
    */
-  listVersions(group: string, component: string, opts?: VersionQueryOptions): Promise<VersionQueryResult>;
+  listVersions(nameName: string, opts?: VersionQueryOptions): Promise<VersionQueryResult>;
 
   /**
    * Creates a new version of API component in the data store.
@@ -209,103 +202,73 @@ export declare class ComponentModel extends BaseModel {
    * @param info Version description
    */
   addVersion(info: VersionCreateOptions): Promise<void>;
-  /**
-   * Creates a group of components if it does not exist.
-   *
-   * @param groupName Name of the group
-   */
-  ensureGroup(groupName: string): Promise<GroupEntity>;
 
   /**
-   * Returns group model.
-   * @param name Group name
+   * Returns component definition.
+   * @param npmName The component's package name (scope + name)
    */
-  getGroup(name: string): Promise<GroupEntity>;
+  getComponent(npmName: string): Promise<ComponentEntity>;
 
   /**
-   * Creates a component group entity.
+   * Creates a component.
    *
-   * @param name Name of the group
+   * @param name The GitHub name of the component's repository.
+   * @param org GitHub's organization name the component is in.
+   * With the combination with the `name` it creates GitHub's URI.
+   * @param npmName The component's package name (scope + name)
+   * @param version Component version
    * @param key Key of the entity.
+   * @param tags Tags processing options
    * @returns Generated model.
    */
-  createGroup(name: string, key: entity.Key): Promise<GroupEntity>;
+  createComponent(name: string, org: string, npmName: string, version: string, key: entity.Key, tags?: TagsProcessOptions): Promise<ComponentEntity>;
 
   /**
    * Test if component data are already stored and creates a model if not.
    *
    * @param version Component version
-   * @param componentName Component name
-   * @param groupName Component's group
-   * @param pkg Component package name
-   * @param org Component organization
+   * @param name The GitHub name of the component's repository.
+   * @param org GitHub's organization name the component is in.
+   * With combination with the `name` it creates GitHub's URI.
+   * @param npmName The component's package name (scope + name)
    * @param tags Tags processing options
    */
-  ensureComponent(version: string, componentName: string, groupName: string, pkg: string, org: string, tags?: TagsProcessOptions): Promise<ComponentEntity>;
-
-  /**
-   * Returns component definition.
-   * @param groupName Group id
-   * @param componentName Component id
-   */
-  getComponent(groupName: string, componentName: string): Promise<ComponentEntity>;
-
-  /**
-   * Creates a component.
-   *
-   * @param name Name of the group
-   * @param version Component version
-   * @param groupName Component's group
-   * @param pkg Component package name
-   * @param org Component organization
-   * @param key Key of the entity.
-   * @param tags Tags processing options
-   * @returns Generated model.
-   */
-  createComponent(name: string, version: string, groupName: string, pkg: string, org: string, key: entity.Key, tags?: TagsProcessOptions): Promise<ComponentEntity>;
+   ensureComponent(version: string, name: string, org: string, npmName: string, tags?: TagsProcessOptions): Promise<ComponentEntity>;
 
   /**
    * Adds a new version to the component model.
    * @param model Existing model
    * @param version Version number
    * @param key Datastore key
-   * @param tags Tags processing options
+   * @param tagOpts Tags processing options
    * @returns updated model
    */
-  addComponentVersion(model: ComponentEntity, version: string, key: entity.Key, tags?: TagsProcessOptions): Promise<ComponentEntity>;
+  addComponentVersion(model: ComponentEntity, version: string, key: entity.Key, tagOpts?: TagsProcessOptions): Promise<ComponentEntity>;
 
   /**
    * Replaces/creates version in the data store
    *
-   * @param {ComponentEntity} parent Parent component
+   * @param parent Parent component
    * @param version Component version
-   * @param componentName Component name
-   * @param groupName Component's group
-   * @param {object} data Polymer analysis result
-   * @param {String=} changelog Version changelog
-   * @return {Promise<void>}
+   * @param npmName The component's package name (scope + name)
    */
-  ensureVersion(parent: ComponentEntity, version: string, componentName: string, groupName: string, data: object, changelog?: string): Promise<void>;
+  ensureVersion(parent: ComponentEntity, version: string, npmName: string): Promise<void>;
 
   /**
    * Creates component version entity.
    *
    * @param parent Parent component
    * @param version Component version
-   * @param componentName Component name
-   * @param groupName Component's group
-   * @param docs Polymer analysis result
-   * @param changelog Generated changelog
+   * @param npmName The component's package name (scope + name)
    */
-  createVersion(parent: ComponentEntity, version: string, componentName: string, groupName: string, docs: object, changelog?: string): Promise<void>;
+  createVersion(parent: ComponentEntity, version: string, npmName: string): Promise<void>;
 
   /**
    * Returns component definition.
-   * @param groupName Group name
-   * @param componentName Component name
+   * @param npmName The component's package name (scope + name)
    * @param version Version name.
    */
-  getVersion(groupName: string, componentName: string, version: string): Promise<VersionEntity|null>;
+  getVersion(npmName: string, version: string): Promise<VersionEntity|null>;
 
   /**
    * Queries for versions.
@@ -315,9 +278,8 @@ export declare class ComponentModel extends BaseModel {
 
   /**
    * Updates properties of a component entity
-   * @param groupName Name of component's group
-   * @param componentName Name of the component
+   * @param npmName The component's package name (scope + name)
    * @param props Properties to update
    */
-  updateComponentProperties(groupName: string, componentName: string, props: object): Promise<void>;
+  updateComponentProperties(npmName: string, props: object): Promise<void>;
 }
